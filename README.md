@@ -28,13 +28,11 @@ TBC
 4. [Evaluation](#evaluation)  
    - [FOD Evaluation](#fod-evaluation)  
    - [Fiber Bundle Element "fixel" Evaluation](#fiber-bundle-element-fixel-evaluation)  
-      - [Fixel Generation](#generate-fixel)  
-      - [Fixel Analysis (Direction, Peak, AFD)](#fixel-analysis-direction-peak-afd)  
    - [Connectome Evaluation](#connectome-evaluation)  
    - [Fixel-Based Analysis](#fixel-based-analysis)  
    - [Pathological Connection Analysis](#pathological-connection-analysis)  
    - [Correlation Analysis](#correlation-analysis)  
-5. [References](#references)  
+4. [References](#references)  
 
    
 ## Dataset
