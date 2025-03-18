@@ -62,7 +62,7 @@ TBC
 cd /evaluation
 python evaluation_fod.py
 ```
-### Fixel evaluation
+### Fiber Bundle Element "fixel" Evaluation
 - Generate fixel
 ```
 cd /evaluation
