@@ -27,7 +27,7 @@ TBC
    - [Inference](#inference)  
 4. [Evaluation](#evaluation)  
    - [FOD Evaluation](#fod-evaluation)  
-   - [Fiber Bundle Element "fixel" Evaluation](#fixel-based-evaluation)  
+   - [Fiber Bundle Element "fixel" Evaluation](#fiber-bundle-element-fixel-evaluation)  
      - [Fixel Generation](#fixel-generation)  
      - [Fixel Analysis (Direction, Peak, AFD)](#fixel-analysis-direction-peak-afd)  
    - [Connectome Evaluation](#connectome-evaluation)  
