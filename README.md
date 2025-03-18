@@ -17,7 +17,7 @@ TBC
 
 > [[Project page]](https://fastfodnet.github.io/)
 >
-> ![HCP_SR](./teaser.png)
+> ![FastFOD-Net](./teaser.png)
 
 ## Dataset
 [HCP Dataset](https://www.humanconnectome.org/)
