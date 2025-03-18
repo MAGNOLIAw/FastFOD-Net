@@ -19,24 +19,64 @@ TBC
 >
 > ![FastFOD-Net](./teaser.png)
 
+## Outline
+1. [Introduction](#fastfod-net)  
+2. [Dataset](#dataset)  
+3. [Usage](#usage)  
+   - [Training](#training)  
+   - [Inference](#inference)  
+4. [Evaluation](#evaluation)  
+   - [FOD Evaluation](#fod-evaluation)  
+   - [Fiber Bundle Element "fixel" Evaluation](#fixel-based-evaluation)  
+     - [Fixel Generation](#fixel-generation)  
+     - [Fixel Analysis (Direction, Peak, AFD)](#fixel-analysis-direction-peak-afd)  
+   - [Connectome Evaluation](#connectome-evaluation)  
+   - [Fixel-Based Analysis](#fixel-based-analysis)  
+   - [Pathological Connection Analysis](#pathological-connection-analysis)  
+   - [Correlation Analysis](#correlation-analysis)  
+5. [References](#references)  
+
+   
 ## Dataset
 [HCP Dataset](https://www.humanconnectome.org/)
 
 ## Basic Usages
-**Training**
+### **Training**
 ```
 cd /scripts/
 sh train.sh
 ```
 
-**Inference**
+### **Inference**
 ```
 cd /scripts/
 sh test.sh
 ```
 
+
 ## Evaluation Pipeline
 TBC
+
+### FOD evaluation
+```
+cd /evaluation
+python evaluation_fod.py
+```
+### Fixel evaluation
+- Generate fixel
+```
+cd /evaluation
+python generate_fixel.py
+```
+- Evaluate fixels from direction, peak, AFD
+```
+cd /evaluation
+python evaluate_fixel.py
+```
+### Connectome evaluation
+### Fixel-based analysis
+### Pathological connection analysis
+### Correlation analysis
 
 
 ## Citation
