@@ -175,7 +175,7 @@ class BaseModel(ABC):
         """
         for name in self.model_names:
             if isinstance(name, str):
-                epoch = 50
+                # epoch = 50
                 if load_path is not None:
                     load_path = load_path
                 else:

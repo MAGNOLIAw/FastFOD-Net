@@ -138,13 +138,15 @@ class HCP_SR_v2_Data_IO:
         if path is not None:
             # Create the output directory if not existent
             if not os.path.exists(path):
-                os.mkdir(path)
+                # os.mkdir(path)
+                os.makedirs(path, exist_ok=True)
             # Backup the prediction
             self.interface.save_prediction(pred, index, path, info)
         else:
             # Create the output directory if not existent
             if not os.path.exists(self.output_path):
-                os.mkdir(self.output_path)
+                # os.mkdir(self.output_path)
+                os.makedirs(self.output_path, exist_ok=True)
             # Backup the prediction
             self.interface.save_prediction(pred, index, self.output_path, info)
 

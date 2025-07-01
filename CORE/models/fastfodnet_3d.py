@@ -11,13 +11,13 @@ def get_pad(in_,  ksize, stride, atrous=1):
     pad = int(((out_ - 1) * stride + atrous*(ksize-1) + 1 - in_)/2)
     return pad
 
-class LesionGateConv(torch.nn.Module):
+class ConvBlock(torch.nn.Module):
     """
     Gated Convlution layer with activation (default activation:LeakyReLU)
     """
     def __init__(self, in_channels, out_channels, kernel_size, stride=1, padding=0, dilation=1, groups=1, bias=True, batch_norm=True,
                  activation_name='ReLU', use_gate=False):
-        super(LesionGateConv, self).__init__()
+        super(ConvBlock, self).__init__()
         self.batch_norm = batch_norm
 
         self.conv3d = torch.nn.Conv3d(in_channels, out_channels, kernel_size, stride, padding, dilation, groups, bias)
@@ -61,12 +61,10 @@ class LesionGateConv(torch.nn.Module):
         return x
 
 
-class LesionGateDeConv(torch.nn.Module):
+class DeConvBlock(torch.nn.Module):
     def __init__(self, scale_factor, in_channels, out_channels, kernel_size, stride=1, padding=0,
                  dilation=1, groups=1, bias=True, batch_norm=True, activation_name='ReLU'):
-        super(LesionGateDeConv, self).__init__()
-        # self.conv3d = LesionGateConv(in_channels, out_channels, kernel_size, stride, padding, dilation, groups, bias, batch_norm, activation, use_gate=False)
-        # self.scale_factor = scale_factor
+        super(DeConvBlock, self).__init__()
 
         if activation_name == 'ReLU':
             activation = nn.ReLU(inplace=True)
@@ -90,10 +88,9 @@ class LesionGateDeConv(torch.nn.Module):
         return x
 
 
-class UNet3D(nn.Module):
+class FastFODNet(nn.Module):
     def __init__(self, in_dim=45, out_dim=45, batch_norm=True, cnum=32*2):
-        super(UNet3D, self).__init__()
-        print("UNet3D, cmun = ", cnum)
+        super(FastFODNet, self).__init__()
         self.in_dim = in_dim
         self.out_dim = out_dim
         # activation = nn.ReLU(inplace=True)
@@ -101,36 +98,35 @@ class UNet3D(nn.Module):
         activation = 'ReLU'
 
         # Down sampling
-        self.enc1_1 = LesionGateConv(in_dim, cnum, 3, 1, padding=get_pad(64, 3, 1), batch_norm=batch_norm, activation_name=activation, use_gate=False)
-        self.enc1_2 = LesionGateConv(cnum, cnum, 3, 2, padding=get_pad(64, 3, 1), batch_norm=batch_norm, activation_name=activation, use_gate=False)
+        self.enc1_1 = ConvBlock(in_dim, cnum, 3, 1, padding=get_pad(64, 3, 1), batch_norm=batch_norm, activation_name=activation, use_gate=False)
+        self.enc1_2 = ConvBlock(cnum, cnum, 3, 2, padding=get_pad(64, 3, 1), batch_norm=batch_norm, activation_name=activation, use_gate=False)
         # downsample to 128
-        self.enc2_1 = LesionGateConv(cnum, 2 * cnum, 3, 1, padding=get_pad(32, 3, 1), batch_norm=batch_norm, activation_name=activation, use_gate=False)
-        self.enc2_2 = LesionGateConv(2 * cnum, 2 * cnum, 3, 2, padding=get_pad(32, 3, 1), batch_norm=batch_norm, activation_name=activation, use_gate=False)
+        self.enc2_1 = ConvBlock(cnum, 2 * cnum, 3, 1, padding=get_pad(32, 3, 1), batch_norm=batch_norm, activation_name=activation, use_gate=False)
+        self.enc2_2 = ConvBlock(2 * cnum, 2 * cnum, 3, 2, padding=get_pad(32, 3, 1), batch_norm=batch_norm, activation_name=activation, use_gate=False)
         # downsample to 64
-        self.enc3_1 = LesionGateConv(2 * cnum, 4 * cnum, 3, 1, padding=get_pad(16, 3, 1), batch_norm=batch_norm, activation_name=activation, use_gate=False)
-        self.enc3_2 = LesionGateConv(4 * cnum, 4 * cnum, 3, 2, padding=get_pad(16, 3, 1), batch_norm=batch_norm, activation_name=activation, use_gate=False)
+        self.enc3_1 = ConvBlock(2 * cnum, 4 * cnum, 3, 1, padding=get_pad(16, 3, 1), batch_norm=batch_norm, activation_name=activation, use_gate=False)
+        self.enc3_2 = ConvBlock(4 * cnum, 4 * cnum, 3, 2, padding=get_pad(16, 3, 1), batch_norm=batch_norm, activation_name=activation, use_gate=False)
         # downsample to 32
-        self.enc4_1 = LesionGateConv(4 * cnum, 8 * cnum, 3, 1, padding=get_pad(8, 3, 1), batch_norm=batch_norm, activation_name=activation, use_gate=False)
-        self.enc4_2 = LesionGateConv(8 * cnum, 8 * cnum, 3, 2, padding=get_pad(8, 3, 1), batch_norm=batch_norm, activation_name=activation, use_gate=False)
+        self.enc4_1 = ConvBlock(4 * cnum, 8 * cnum, 3, 1, padding=get_pad(8, 3, 1), batch_norm=batch_norm, activation_name=activation, use_gate=False)
+        self.enc4_2 = ConvBlock(8 * cnum, 8 * cnum, 3, 2, padding=get_pad(8, 3, 1), batch_norm=batch_norm, activation_name=activation, use_gate=False)
 
         # Bridge
-        self.bridge = LesionGateConv(8 * cnum, 16 * cnum, 3, 1, padding=get_pad(4, 3, 1), batch_norm=batch_norm, activation_name=activation, use_gate=False)
+        self.bridge = ConvBlock(8 * cnum, 16 * cnum, 3, 1, padding=get_pad(4, 3, 1), batch_norm=batch_norm, activation_name=activation, use_gate=False)
 
         # Up sampling
-        self.dec1_1 = LesionGateDeConv(2, 16 * cnum, 8 * cnum, 3, 1, padding=get_pad(8, 3, 1), batch_norm=batch_norm, activation_name=activation)
-        self.dec1_2 = LesionGateConv(16 * cnum, 8 * cnum, 3, 1, padding=get_pad(8, 3, 1), batch_norm=batch_norm, activation_name=activation, use_gate=False)
-        self.dec2_1 = LesionGateDeConv(2, 8 * cnum, 4 * cnum, 3, 1, padding=get_pad(16, 3, 1), batch_norm=batch_norm, activation_name=activation)
-        self.dec2_2 = LesionGateConv(8 * cnum, 4 * cnum, 3, 1, padding=get_pad(16, 3, 1), batch_norm=batch_norm, activation_name=activation, use_gate=False)
-        self.dec3_1 = LesionGateDeConv(2, 4 * cnum, 2 * cnum, 3, 1, padding=get_pad(32, 3, 1), batch_norm=batch_norm, activation_name=activation)
-        self.dec3_2 = LesionGateConv(4 * cnum, 2 * cnum, 3, 1, padding=get_pad(32, 3, 1), batch_norm=batch_norm, activation_name=activation, use_gate=False)
-        self.dec4_1 = LesionGateDeConv(2, 2 * cnum, cnum, 3, 1, padding=get_pad(64, 3, 1), batch_norm=batch_norm, activation_name=activation)
-        self.dec4_2 = LesionGateConv(2 * cnum, cnum, 3, 1, padding=get_pad(64, 3, 1), batch_norm=batch_norm, activation_name=activation, use_gate=False)
+        self.dec1_1 = DeConvBlock(2, 16 * cnum, 8 * cnum, 3, 1, padding=get_pad(8, 3, 1), batch_norm=batch_norm, activation_name=activation)
+        self.dec1_2 = ConvBlock(16 * cnum, 8 * cnum, 3, 1, padding=get_pad(8, 3, 1), batch_norm=batch_norm, activation_name=activation, use_gate=False)
+        self.dec2_1 = DeConvBlock(2, 8 * cnum, 4 * cnum, 3, 1, padding=get_pad(16, 3, 1), batch_norm=batch_norm, activation_name=activation)
+        self.dec2_2 = ConvBlock(8 * cnum, 4 * cnum, 3, 1, padding=get_pad(16, 3, 1), batch_norm=batch_norm, activation_name=activation, use_gate=False)
+        self.dec3_1 = DeConvBlock(2, 4 * cnum, 2 * cnum, 3, 1, padding=get_pad(32, 3, 1), batch_norm=batch_norm, activation_name=activation)
+        self.dec3_2 = ConvBlock(4 * cnum, 2 * cnum, 3, 1, padding=get_pad(32, 3, 1), batch_norm=batch_norm, activation_name=activation, use_gate=False)
+        self.dec4_1 = DeConvBlock(2, 2 * cnum, cnum, 3, 1, padding=get_pad(64, 3, 1), batch_norm=batch_norm, activation_name=activation)
+        self.dec4_2 = ConvBlock(2 * cnum, cnum, 3, 1, padding=get_pad(64, 3, 1), batch_norm=batch_norm, activation_name=activation, use_gate=False)
 
         # Output
-        self.out = LesionGateConv(cnum, out_dim, 3, 1, padding=get_pad(64, 3, 1), batch_norm=batch_norm, activation_name=None, use_gate=False)
+        self.out = ConvBlock(cnum, out_dim, 3, 1, padding=get_pad(64, 3, 1), batch_norm=batch_norm, activation_name=None, use_gate=False)
 
-    def forward(self, x, encoder_only=False, save_feat=False, lgc_layers=['enc4_1', 'enc3_1', 'enc2_1']):
-        feat = []
+    def forward(self, x):
 
         x, pads = pad_to(x, 16)
 
@@ -142,24 +138,15 @@ class UNet3D(nn.Module):
         down_2 = self.enc2_1(pool_1)
         pool_2 = self.enc2_2(down_2)
         x = pool_2
-        if 'enc2_1' in lgc_layers:
-            feat.append(x)
 
         down_3 = self.enc3_1(pool_2)
         pool_3 = self.enc3_2(down_3)
         x = pool_3
-        if 'enc3_1' in lgc_layers:
-            feat.append(x)
 
         down_4 = self.enc4_1(pool_3)
         pool_4 = self.enc4_2(down_4)
         x = pool_4
-        if 'enc4_1' in lgc_layers:
-            feat.append(x)
         # print('pool shape', pool_1.shape, pool_2.shape, pool_3.shape, pool_4.shape)
-
-        if encoder_only:
-            return feat
 
         # Bridge
         bridge = self.bridge(pool_4)
@@ -187,7 +174,4 @@ class UNet3D(nn.Module):
         out = self.out(up_4)
         out = unpad(out, pads)
 
-        if save_feat:
-            return out, feat
-        else:
-            return out
+        return out

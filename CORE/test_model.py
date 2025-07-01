@@ -113,7 +113,9 @@ if __name__ == '__main__':
 
     # Create a summary file
     if not os.path.exists(data_io.output_path):
-        subprocess.call(['mkdir', data_io.output_path])
+        # subprocess.call(['mkdir', data_io.output_path])
+        # subprocess.call(['mkdir', data_io.output_path])
+        os.makedirs(data_io.output_path, exist_ok=True)
     if os.path.exists(os.path.join(data_io.output_path, "fold_" + str(opt.test_fold) + '_summary.txt')):
         subprocess.call(['rm', os.path.join(data_io.output_path, 'summary.txt')])
     summary_file = open(os.path.join(data_io.output_path, "fold_" + str(opt.test_fold) + '_summary.txt'), 'w')

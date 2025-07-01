@@ -4,16 +4,9 @@ from torch.nn import init
 import functools
 from torch.optim import lr_scheduler
 
-from .unet_3d import UNet3D
-from .unet_3d_v1 import UNet3Dv1
-from .unet_3d_v1_c64 import UNet3Dv1c64
-from .unet_3d_dp import UNet3dDp
-from .ocenet import OCENET
+
 from .gate_3d import GateUNet3D
-from .BayesianModels.BayesianUnet_3d import BUNet3D
-from .whatmodel import WhatModel
-from methods.layer_ensembles import LayerEnsembles
-from utils.le_utils import Task, Organ
+from .fastfodnet_3d import FastFODNet
 ###############################################################################
 # Helper Functions
 ###############################################################################
@@ -151,6 +144,8 @@ def define_net(input_nc, output_nc, net_name, norm='batch', init_type='normal', 
     print('net_name', net_name)
     if net_name == 'unet':
         net = UNet3Dv1(input_nc, output_nc)
+    elif net_name == 'fastfodnet':
+        net = FastFODNet(input_nc, output_nc)
     elif net_name == 'unet_c64':
         net = UNet3Dv1c64(input_nc, output_nc)
     elif net_name == 'gate_unet':

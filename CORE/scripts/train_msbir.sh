@@ -1,5 +1,5 @@
 set -ex
-python3 /home/xinyi/FastFOD-Net/train_model.py \
+python3 /home/xinyi/FastFOD-Net/CORE/train_model.py \
 --dataroot /home/xinyi/MSBIR/30dir_b1000_fod_bbox/ \
 --maskroot /home/xinyi/MSBIR/brainmasks_vox1.25/ \
 --gtroot /home/xinyi/MSBIR/fod_bbox/ \
@@ -20,8 +20,8 @@ python3 /home/xinyi/FastFOD-Net/train_model.py \
 --save_latest_freq 100000 \
 --save_epoch_freq 50 \
 --gpu_ids 0 \
---conv_type unet \
---test_fold 1 \
+--conv_type fastfodnet \
+--test_fold 0 \
 --phase train \
 --index_pattern '^\d{3}$' \
 --sample_suffix "_WMfod_30dir_b1000_norm.mif.gz" \
