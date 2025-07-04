@@ -1,9 +1,12 @@
+from utils.logger import setup_logger
+logger = setup_logger()
+
+import warnings
 import os
 import torch
 from collections import OrderedDict
 from abc import ABC, abstractmethod
 from . import networks
-
 
 class BaseModel(ABC):
     """
@@ -35,11 +38,16 @@ class BaseModel(ABC):
         self.device = torch.device('cuda:{}'.format(self.gpu_ids[0])) if self.gpu_ids else torch.device('cpu')  # get device name: CPU or GPU
         self.save_dir = os.path.join(opt.checkpoints_dir, opt.name)  # save all the checkpoints to save_dir
         torch.backends.cudnn.benchmark = True
+        
         self.loss_names = []
         self.model_names = []
         self.optimizers = []
         self.image_paths = []
         self.metric = 0  # used for learning rate policy 'plateau'
+
+        # Verbosity-based logging level
+        # if getattr(opt, 'verbose', False):
+        #     logger.setLevel(logging.DEBUG)
 
     @staticmethod
     def modify_commandline_options(parser, is_train):
@@ -79,10 +87,11 @@ class BaseModel(ABC):
         Parameters:
             opt (Option class) -- stores all the experiment flags; needs to be a subclass of BaseOptions
         """
-        if self.isTrain:
-            # self.load_networks(load_path='HCP99_fodnorm_gateunetv3_zscore_f4')
+        # if self.isTrain:
+        if self.opt.phase == "train":
             self.schedulers = [networks.get_scheduler(optimizer, opt) for optimizer in self.optimizers]
-        if not self.isTrain or opt.continue_train:
+        # if not self.isTrain or opt.continue_train:
+        if self.opt.phase != "train" or opt.continue_train:
             load_suffix = 'iter_%d' % opt.load_iter if opt.load_iter > 0 else opt.epoch
             self.load_networks(load_suffix)
 
@@ -124,7 +133,9 @@ class BaseModel(ABC):
                 scheduler.step()
 
         lr = self.optimizers[0].param_groups[0]['lr']
-        print('learning rate %.7f -> %.7f' % (old_lr, lr))
+        logger.info('Learning rate %.7f → %.7f' % (old_lr, lr))        
+        # print('learning rate %.7f -> %.7f' % (old_lr, lr))
+        
 
     def get_current_losses(self):
         """Return traning losses / errors. train.py will print out these errors on console, and save them to a file"""
@@ -144,7 +155,8 @@ class BaseModel(ABC):
             if isinstance(name, str):
                 save_filename = '%s_net_%s.pth' % (epoch, name)
                 save_path = os.path.join(self.save_dir, save_filename)
-                print('save model to path:', save_path)
+                logger.info(f'Saving model to: {save_path}')
+                # print(f'Saving model to:{save_path}')
                 net = getattr(self, 'net_' + name)
 
                 if len(self.gpu_ids) > 0 and torch.cuda.is_available():
@@ -167,36 +179,47 @@ class BaseModel(ABC):
         else:
             self.__patch_instance_norm_state_dict(state_dict, getattr(module, key), keys, i + 1)
 
-    def load_networks(self, epoch, load_path=None):
+    def load_networks(self, epoch, load_path=None, weights_only=True):
         """Load all the networks from the disk.
 
         Parameters:
             epoch (int) -- current epoch; used in the file name '%s_net_%s.pth' % (epoch, name)
+            load_path (str)     -- optional full path to the model file
+            weights_only (bool) -- whether to load only state_dict (recommended for security)            
         """
         for name in self.model_names:
-            if isinstance(name, str):
-                # epoch = 50
-                if load_path is not None:
-                    load_path = load_path
-                else:
-                    load_filename = '%s_net_%s.pth' % (epoch, name)
-                    load_path = os.path.join(self.save_dir, load_filename)
-                net = getattr(self, 'net_' + name)
-                if isinstance(net, torch.nn.DataParallel):
-                    net = net.module
-                print('loafding the model from %s' % load_path)
+            if not isinstance(name, str):
+                warnings.warn(f"Skipping non-string model name in model_names: {name} (type: {type(name)})", UserWarning)
+                continue
 
-                # if you are using PyTorch newer than 0.4 (e.g., built from
-                # GitHub source), you can remove str() on self.device
-                state_dict = torch.load(load_path, map_location=str(self.device))
+            if load_path is None:
+                load_filename = f'{epoch}_net_{name}.pth'
+                path = os.path.join(self.save_dir, load_filename)
+            else:
+                path = load_path    
 
-                if hasattr(state_dict, '_metadata'):
-                    del state_dict._metadata
+            net = getattr(self, 'net_' + name)
+            if isinstance(net, torch.nn.DataParallel):
+                net = net.module
+            logger.info(f'[Loading] Model from: {path} ({type(net).__name__})')
+            # print(f'Loading the model from {path} ({type(net).__name__})')
 
-                # patch InstanceNorm checkpoints prior to 0.4
-                for key in list(state_dict.keys()):  # need to copy keys here because we mutate in loop
-                    self.__patch_instance_norm_state_dict(state_dict, net, key.split('.'))
-                net.load_state_dict(state_dict)
+            # Load state dict securely
+            # state_dict = torch.load(path, map_location=self.device, weights_only=weights_only)
+            try:
+                state_dict = torch.load(path, map_location=self.device, weights_only=weights_only)
+            except TypeError:
+                # Fallback for older PyTorch versions that do not support `weights_only`
+                state_dict = torch.load(path, map_location=self.device)
+
+            # Clean legacy instance norm incompatibilities
+            if hasattr(state_dict, '_metadata'):
+                del state_dict._metadata
+            # patch InstanceNorm checkpoints prior to 0.4
+            for key in list(state_dict.keys()):  # need to copy keys here because we mutate in loop
+                self.__patch_instance_norm_state_dict(state_dict, net, key.split('.'))
+
+            net.load_state_dict(state_dict)
 
     def print_networks(self, verbose):
         """Print the total number of parameters in the network and (if verbose) network architecture
@@ -204,7 +227,8 @@ class BaseModel(ABC):
         Parameters:
             verbose (bool) -- if verbose: print the network architecture
         """
-        print('---------- Networks initialized -------------')
+        # print('---------- Networks initialized -------------')
+        # logger.info("═" * 25 + " Model Initialization " + "═" * 25)
         for name in self.model_names:
             if isinstance(name, str):
                 net = getattr(self, 'net_' + name)
@@ -212,9 +236,12 @@ class BaseModel(ABC):
                 for param in net.parameters():
                     num_params += param.numel()
                 if verbose:
-                    print(net)
-                print('[Network %s] Total number of parameters : %.3f M' % (name, num_params / 1e6))
-        print('-----------------------------------------------')
+                    logger.info(str(net))
+                    # print(net)
+                logger.info('[Network %s] Total number of parameters : %.3f M' % (name, num_params / 1e6))
+                # print('[Network %s] Total number of parameters : %.3f M' % (name, num_params / 1e6))
+        # logger.info("═" * 70)
+        logger.info("-" * 55)
 
     def set_requires_grad(self, nets, requires_grad=False):
         """Set requies_grad=Fasle for all the networks to avoid unnecessary computations
@@ -228,34 +255,3 @@ class BaseModel(ABC):
             if net is not None:
                 for param in net.parameters():
                     param.requires_grad = requires_grad
-
-    def load_networks_2(self, epoch, load_path=None):
-        """Load all the networks from the disk.
-
-        Parameters:
-            epoch (int) -- current epoch; used in the file name '%s_net_%s.pth' % (epoch, name)
-        """
-        for name in self.model_names:
-            if isinstance(name, str):
-                # epoch = 50
-                if load_path is not None:
-                    load_path = load_path
-                else:
-                    load_filename = '%s_net_%s.pth' % (epoch, name)
-                    load_path = os.path.join(self.save_dir, load_filename)
-                net = getattr(self, 'net_' + name)
-                if isinstance(net, torch.nn.DataParallel):
-                    net = net.module
-                print('loading the model from %s' % load_path, type(net))
-
-                # if you are using PyTorch newer than 0.4 (e.g., built from
-                # GitHub source), you can remove str() on self.device
-                state_dict = torch.load(load_path, map_location=str(self.device))
-
-                if hasattr(state_dict, '_metadata'):
-                    del state_dict._metadata
-
-                # patch InstanceNorm checkpoints prior to 0.4
-                for key in list(state_dict.keys()):  # need to copy keys here because we mutate in loop
-                    self.__patch_instance_norm_state_dict(state_dict, net.gateunet3dv3, key.split('.'))
-                net.gateunet3dv3.load_state_dict(state_dict)

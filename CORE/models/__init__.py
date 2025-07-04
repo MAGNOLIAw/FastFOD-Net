@@ -1,3 +1,5 @@
+from utils.logger import setup_logger
+logger = setup_logger()
 """This package contains modules related to objective functions, optimizations, and network architectures.
 
 To add a custom model class called 'dummy', you need to add a file called 'dummy_model.py' and define a subclass DummyModel inherited from BaseModel.
@@ -20,7 +22,6 @@ We have implemented 'lesion_inpaint_lgc_model' for reference.
 
 import importlib
 
-
 def find_model_using_name(model_name):
     """
     Import the module "models/[model_name]_model.py".
@@ -34,7 +35,8 @@ def find_model_using_name(model_name):
             model = cls
 
     if model is None:
-        print("In %s.py, there should be a subclass of BaseModel with class name that matches %s in lowercase." % (model_filename, target_model_name))
+        logger.info("In %s.py, there should be a subclass of BaseModel with class name that matches %s in lowercase." % (model_filename, target_model_name))
+        # print("In %s.py, there should be a subclass of BaseModel with class name that matches %s in lowercase." % (model_filename, target_model_name))
         exit(0)
 
     return model
@@ -59,5 +61,6 @@ def create_model(opt):
     """
     model = find_model_using_name(opt.model)
     instance = model(opt)
-    print("model [%s] was created" % type(instance).__name__)
+    logger.info("Model [%s] was created" % type(instance).__name__)
+    # print("model [%s] was created" % type(instance).__name__)
     return instance

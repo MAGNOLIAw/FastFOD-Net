@@ -31,10 +31,11 @@ from options.test_options import TestOptions
 from data import create_dataset
 from models import create_model
 from utils.utils import *
+from utils.metrics import *
+from utils.logger import setup_logger
 
-from data_loading.interfaces import HCP_SR_v2_NIFTI_interface
-from data_loading import HCP_SR_v2_Data_IO
-from processing.subfunctions import Normalization_HCP_SR_FOD
+from data_loading.interfaces import FOD_RE_interface
+from data_loading import FOD_RE_Data_IO
 
 import torch
 import subprocess
@@ -45,6 +46,9 @@ import nibabel as nib
 import torch.nn as nn
 import numpy as np
 import random
+
+# Setup logger
+logger = setup_logger()
 
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
 # device = torch.device('cpu')
@@ -57,70 +61,48 @@ os.environ['KMP_DUPLICATE_LIB_OK']='True'
 # torch.backends.cudnn.benchmark = True
 # torch.backends.cudnn.deterministic = True
 
-if __name__ == '__main__':
+def log_and_record(msg):
+    logger.info(msg)
+    return msg + '\n'
+
+def main():
     opt = TestOptions().parse()  # get test options
-    # hard-code some parameters for test
+
+    # Hard-coded test settings
     opt.num_threads = 0   # test code only supports num_threads = 0
-    # opt.batch_size = 1    # test code only supports batch_size = 1
     opt.serial_batches = True  # disable data shuffling; comment this line if results on randomly chosen images are needed.
     opt.no_flip = True    # no flip; comment this line if results on flipped images are needed.
     opt.display_id = -1   # no visdom display; the test code saves the results to a HTML file.
     opt.patchwise_skip_blanks = False
     opt.bounding_box = False
-    istest = True
-    # load sample list
-    if (opt.foldroot is not None) and istest==False:
+
+    # Load sample list
+    if (opt.foldroot is not None):
         # Obtain training and validation data set for all folds
         training, validation = load_csv2fold(os.path.join(opt.foldroot, "fold_" + str(opt.test_fold), "sample_list.csv"))
         training.sort()
-        # sample_list = training
         sample_list = validation
     elif opt.indexroot is not None:
         training, validation = load_csv2fold(opt.indexroot)
         training.sort()
-        # sample_list = training
         sample_list = validation
-    elif (opt.foldroot is not None) and istest==True:
-        # load all data of this dataset
-        training, validation = load_csv2fold(os.path.join(opt.foldroot, "fold_" + str(opt.test_fold), "sample_list.csv"))
-        training.sort()
-        # sample_list = training
-        sample_list = training + validation
     else:
-        # ---- no sample list
-        sample_list = None # Intailize with Data_IO class
+        raise ValueError("Please provide either --foldroot or --indexroot")
 
-    print(sample_list, len(sample_list))
+    logger.info(f"Total samples to evaluate: {len(sample_list)}")
 
     # Initialize Data IO Interface for NIfTI data
-    # interface = HCP_SR_v2_NIFTI_interface(channels=opt.input_nc, classes=opt.output_nc,
-    #                                       pattern='^\d{3}$', suffix="_wmfod_norm.nii.gz")
-    # IF load mif of MND
-    # interface = HCP_SR_v2_NIFTI_interface(channels=opt.input_nc, classes=opt.output_nc,
-    #                                       pattern='^\d{3}$', suffix="_wmfod_norm.mif.gz")
-    interface = HCP_SR_v2_NIFTI_interface(channels=opt.input_nc, classes=opt.output_nc,
-                                          pattern=opt.index_pattern, suffix=opt.sample_suffix,
-                                          gt_suffix=opt.sample_gt_suffix)
+    interface = FOD_RE_interface(channels=opt.input_nc, classes=opt.output_nc,
+                                        pattern=opt.index_pattern, suffix=opt.sample_suffix,
+                                        gt_suffix=opt.sample_gt_suffix)
     # Create Data IO object to load and write samples in the file structure
-    data_io = HCP_SR_v2_Data_IO(interface, input_path=opt.dataroot, output_path=opt.output_dir,
+    data_io = FOD_RE_Data_IO(interface, input_path=opt.dataroot, output_path=opt.output_dir,
                                 batch_path="fod_norm_tensor", delete_batchDir=False, mask_path=opt.maskroot,
                                 gt_path=opt.gtroot, sample_list=sample_list)
 
     # Access all available samples in our file structure
     sample_list = data_io.get_indiceslist()
     sample_list.sort()
-    # sample_list = ['077']
-
-    # Create a summary file
-    if not os.path.exists(data_io.output_path):
-        # subprocess.call(['mkdir', data_io.output_path])
-        # subprocess.call(['mkdir', data_io.output_path])
-        os.makedirs(data_io.output_path, exist_ok=True)
-    if os.path.exists(os.path.join(data_io.output_path, "fold_" + str(opt.test_fold) + '_summary.txt')):
-        subprocess.call(['rm', os.path.join(data_io.output_path, 'summary.txt')])
-    summary_file = open(os.path.join(data_io.output_path, "fold_" + str(opt.test_fold) + '_summary.txt'), 'w')
-
-    entry = 'Load checkpoint from: ' + opt.checkpoints_dir + opt.name + '\n'
 
     torch.cuda.empty_cache()
 
@@ -129,38 +111,33 @@ if __name__ == '__main__':
     model.eval()
 
     # Create normalization
-    sf_zscore = Normalization_HCP_SR_FOD(mode=opt.normalization_mode)
-    sf = [sf_zscore]
-
-    # Obtain training and validation data set
-    # opt.sample_list = [sample_list[0]]
-    opt.sample_list = sample_list
-    # opt.sample_list = ['077']
-    opt.eval_sample = 0
-    opt.data_io = data_io
-    save_prediction = True
-
-    loss_list = []
-    mse_lst = []
-    mae_lst = []
-    psnr = []
-    mse_med = []
-    psnr_med = []
-    time_spent = []
-
-    # gt_mean = np.load(os.path.join(opt.checkpoints_dir, opt.name, sf_zscore.mode + '_gt_mean.npy'), allow_pickle=True)
-    # gt_std = np.load(os.path.join(opt.checkpoints_dir, opt.name, sf_zscore.mode + '_gt_std.npy'), allow_pickle=True)
-    # lr_mean = np.load(os.path.join(opt.checkpoints_dir, opt.name, sf_zscore.mode + '_lr_mean.npy'), allow_pickle=True)
-    # lr_std = np.load(os.path.join(opt.checkpoints_dir, opt.name, sf_zscore.mode + '_lr_std.npy'), allow_pickle=True)
-    # mean = gt_mean
-    # std = gt_std
+    # sf_zscore = Normalization_HCP_SR_FOD(mode=opt.normalization_mode)
+    # sf = [sf_zscore]
     
-    for i in range(len(opt.sample_list)):
+    # Obtain training and validation data set
+    # opt.sample_list = sample_list
+    opt.sample_list = [sample_list[0]]
+    # opt.eval_sample = 0
+    opt.data_io = data_io
+    # save_prediction = True
+
+    loss_list, mse_lst, mae_lst, psnr, time_spent = [], [], [], [], []
+
+    # Create a summary file
+    os.makedirs(data_io.output_path, exist_ok=True)
+    summary_path = os.path.join(data_io.output_path, f"fold_{opt.test_fold}_summary.txt")
+    summary_file = open(summary_path, 'w')
+
+    entry = 'Load checkpoint from: ' + opt.checkpoints_dir + opt.name + '\n'
+
+
+    for i, index in enumerate(opt.sample_list):
         start_time = time.time()
 
-        index = sample_list[i]
-        entry += ('case: ' + index + '\n')
-        print('case:', i, index)
+        # index = sample_list[i]
+        # entry += f'case: {index}\n'
+        # logger.info(f'[Inference] Case {i+1}/{len(sample_list)}: {index}')
+        entry += log_and_record(f"[Inference] Case {i+1}/{len(sample_list)}: {index}")
 
         # Create dataloader: do normalize + slice patches
         opt.eval_sample = i
@@ -171,80 +148,81 @@ if __name__ == '__main__':
         brain_mask = dataset.dataset.sf_zscore.brain_mask
         ref_img = dataset.dataset.sf_zscore.ref_img
         sample = dataset.dataset.sf_zscore.sample
-        mean = dataset.dataset.sf_zscore.mean
-        std = dataset.dataset.sf_zscore.std
+        mean, std = dataset.dataset.sf_zscore.mean, dataset.dataset.sf_zscore.std
 
-        pred_list = []
-        val_loss = 0.
+        pred_list, val_loss = [], 0.0
+
         for j, data in enumerate(dataset):
             model.set_input(data)
             output = model.test()  # run inference
+
             losses = model.get_current_losses()
             val_loss += losses['R']
 
             output = output.detach().cpu().numpy()
-            # b c w h d -> b w h d c
+            # b c w h d => b w h d c
             output = np.transpose(output, (0, 2, 3, 4, 1))
-            temp = output
-            pred_list.append(temp)
-
+            pred_list.append(output)
 
         # Postprocess predicted patches
         pred_seg = np.concatenate(pred_list, axis=0)
-        pred_seg = dataset.dataset.postprocessing(sample_list[opt.eval_sample], pred_seg, coords=dataset.dataset.coords_batches)
+        pred_seg = dataset.dataset.postprocessing(index, pred_seg, coords=dataset.dataset.coord_queue)
 
         # Compute testing loss
-        loss_list.append(val_loss / (j + 1))
-        print('[Test] loss:', val_loss / (j + 1))
+        avg_loss = val_loss / (j + 1)
+        loss_list.append(avg_loss)
+        entry += log_and_record(f"[Loss] Validation Loss: {avg_loss:.6f}")
+        # logger.info(f"[Loss] Validation Loss: {avg_loss:.6f}")       
+        # print(f'[Loss] Validation Loss: {val_loss / (j + 1):.6f}')
 
         # Compute result image
         result_img = pred_seg.squeeze()
-
         # Scaling all voxels back to FOD range
         result_img = result_img * std + mean
-        # brain_mask = np.expand_dims(brain_mask, 3).repeat(45, axis=3)
         ref_img = ref_img * std + mean
-        # print('std.shape, mean.shape', std.shape, mean.shape)
         # Set background to 0
         result_img = brain_mask * (1 - brain_mask) + result_img * brain_mask
         ref_img = brain_mask * (1 - brain_mask) + ref_img * brain_mask
 
-        ref_patch = ref_img * brain_mask
-        result_patch = result_img * brain_mask
-        valid_no = np.sum(brain_mask)  # valid pixels
+        ref_patch, result_patch = ref_img * brain_mask, result_img * brain_mask
+        valid_no = np.sum(brain_mask)  # valid voxels
 
-        # compute metrics
+        # Compute metrics
         org_mae = np.sum(np.abs(ref_patch - result_patch)) / valid_no
         mae_lst.append(org_mae)
+
         sub_mae, sub_mse, sub_psnr = psnr2(ref_patch, result_patch, valid_no)
-        entry += ('MSE: ' + str(sub_mse)[:6] + ' PSNR: ' + str(sub_psnr)[:6] + '\n')
         mse_lst.append(sub_mse)
         psnr.append(sub_psnr)
-
         time_spent.append(time.time() - start_time)
-        print('MSE: ', sub_mse, 'PSNR: ', sub_psnr)
 
-        # Backup predicted segmentation
-        if save_prediction:
-            dataset.dataset.opt.data_io.save_prediction(result_img, sample_list[i], info=sample.info)
-        print('***************************End inference******************************')
+        # entry += ('MSE: ' + str(sub_mse)[:6] + ' PSNR: ' + str(sub_psnr)[:6] + '\n')
+        entry += log_and_record(f"[Metrics] MSE: {sub_mse:.6f}, PSNR: {sub_psnr:.2f} dB, MAE: {org_mae:.6f}")
+        # entry += f"[Metrics] MSE: {sub_mse:.6f}, PSNR: {sub_psnr:.2f} dB, MAE: {org_mae:.6f}\n"
+        # logger.info(f"[Metrics] MSE: {sub_mse:.6f}, PSNR: {sub_psnr:.2f} dB, MAE: {org_mae:.6f}")
 
-    mean_mse_info = 'mean mse: {:.6f}±{:.6f}'.format(np.mean(mse_lst), np.std(mse_lst))
-    mean_mae_info = 'mean mae: {:.6f}±{:.6f}'.format(np.mean(mae_lst), np.std(mae_lst))
-    mean_psnr_info = 'mean psnr: {:.4f}±{:.4f}'.format(np.mean(psnr), np.std(psnr))
-    mean_time = 'average case time: {:.4f} seconds'.format(np.mean(time_spent))
-    print(mean_mse_info)
-    print(mean_mae_info)
-    print(mean_psnr_info)
-    print(mean_time)
+        # Backup predictions
+        dataset.dataset.opt.data_io.save_prediction(result_img, index, info=sample.info)
 
-    print('For record keeping: \n {:.4f}±{:.4f} {:.4f}±{:.4f} {:.4f}±{:.4f}' \
-          .format(np.mean(mse_lst), np.std(mse_lst), np.mean(mae_lst), np.std(mae_lst), \
-                  np.mean(psnr), np.std(psnr)))
+        entry += log_and_record(f"[{i+1}/{len(sample_list)}] ✓ Inference complete for case: {index}")
+        # logger.info(f"[{i+1}/{len(sample_list)}] ✓ Inference complete for case: {index}")
 
-    entry += (mean_mse_info + '\n')
-    entry += (mean_psnr_info + '\n')
-    entry += '\n'
+    mean_mse_info = 'Mean MSE: {:.6f} ± {:.6f}'.format(np.mean(mse_lst), np.std(mse_lst))
+    mean_mae_info = 'Mean MAE: {:.6f} ± {:.6f}'.format(np.mean(mae_lst), np.std(mae_lst))
+    mean_psnr_info = 'Mean PSNR: {:.4f} ± {:.4f}'.format(np.mean(psnr), np.std(psnr))
+    mean_time = 'Average inference time per case: {:.4f} seconds'.format(np.mean(time_spent))
+
+    entry += log_and_record("========== Summary ==========")
+    entry += log_and_record(mean_mse_info)
+    entry += log_and_record(mean_mae_info)
+    entry += log_and_record(mean_psnr_info)
+    entry += log_and_record(mean_time)
+    entry += log_and_record('For record keeping: {:.4f}±{:.4f} {:.4f}±{:.4f} {:.4f}±{:.4f}'.format(np.mean(mse_lst), np.std(mse_lst), 
+                                                                                          np.mean(mae_lst), np.std(mae_lst),
+                                                                                          np.mean(psnr), np.std(psnr)))
 
     summary_file.write(entry)
     summary_file.close()
+
+if __name__ == '__main__':
+    main()

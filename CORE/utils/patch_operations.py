@@ -1,20 +1,6 @@
-#==============================================================================#
-#  Author:       Dominik Müller, Xinyi Wang                                               #
-#  Copyright:    2020 IT-Infrastructure for Translational Medical Research,    #
-#                University of Augsburg                                        #
-#                                                                              #
-#  This program is free software: you can redistribute it and/or modify        #
-#  it under the terms of the GNU General Public License as published by        #
-#  the Free Software Foundation, either version 3 of the License, or           #
-#  (at your option) any later version.                                         #
-#                                                                              #
-#  This program is distributed in the hope that it will be useful,             #
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of              #
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the               #
-#  GNU General Public License for more details.                                #
-#                                                                              #
-#  You should have received a copy of the GNU General Public License           #
-#  along with this program.  If not, see <http://www.gnu.org/licenses/>.       #
+#==============================================================================#  
+#  Authors:     Xinyi Wang                                                     #
+#  License:     GNU GPL v3.0                                                   #
 #==============================================================================#
 #-----------------------------------------------------#
 #                   Library imports                   #
@@ -30,6 +16,18 @@ import torch.nn.functional as F
 #      Pad and crop patch to desired patch shape      #
 #-----------------------------------------------------#
 def pad_patch(patch, patch_shape, return_slicer=False):
+    """
+    Pad a patch to the target patch shape using minimum padding.
+    Converts channel-last to channel-first format for compatibility.
+
+    Args:
+        patch (np.ndarray): Input patch with shape (H, W, D, C).
+        patch_shape (tuple): Target patch shape.
+        return_slicer (bool): Whether to return the slicer for cropping.
+
+    Returns:
+        np.ndarray or (np.ndarray, slicer): Padded patch and optionally the slicer.
+    """
     # Initialize stat length to overwrite batchgenerators default
     kwargs = {"stat_length": None}
     # Transform prediction from channel-last to channel-first structure
@@ -49,6 +47,16 @@ def pad_patch(patch, patch_shape, return_slicer=False):
         return padding_results
 
 def crop_patch(patch, slicer):
+    """
+    Crop a padded patch using a slicer.
+
+    Args:
+        patch (np.ndarray): Padded patch with shape (H, W, D, C).
+        slicer (list): List of slice objects.
+
+    Returns:
+        np.ndarray: Cropped patch.
+    """
     # Transform prediction from channel-last to channel-first structure
     patch = np.moveaxis(patch, -1, 1)
     # Exclude the number of batches and classes from the slice range
@@ -66,11 +74,39 @@ def crop_patch(patch, slicer):
 #-----------------------------------------------------#
 # Slice a matrix
 def slice_matrix(array, window, overlap, three_dim, index=None, save_coords=False):
+    """
+    Dispatcher function to slice 2D or 3D matrices.
+
+    Args:
+        array (np.ndarray): Input matrix.
+        window (tuple): Patch size.
+        overlap (tuple): Overlap size.
+        three_dim (bool): Whether to use 3D slicing.
+        index (optional): Subject index for coordinate tracking.
+        save_coords (bool): Whether to save coordinates.
+
+    Returns:
+        list: Sliced patches.
+    """
     if three_dim: return slice_3Dmatrix(array, window, overlap, index, save_coords)
     else: return slice_2Dmatrix(array, window, overlap)
 
 # Concatenate a matrix
 def concat_matrices(patches, image_size, window, overlap, three_dim, coords=None):
+    """
+    Dispatcher function to concatenate 2D or 3D patches.
+
+    Args:
+        patches (list): List of image patches.
+        image_size (tuple): Final image size.
+        window (tuple): Patch size.
+        overlap (tuple): Overlap size.
+        three_dim (bool): Whether to use 3D concatenation.
+        coords (list): List of coordinate dictionaries.
+
+    Returns:
+        np.ndarray: Reconstructed image.
+    """
     if three_dim: return concat_3Dmatrices(patches, image_size, window, overlap, coords)
     else: return concat_2Dmatrices(patches, image_size, window, overlap)
 
@@ -162,15 +198,25 @@ def concat_2Dmatrices(patches, image_size, window, overlap):
 #-----------------------------------------------------#
 # Slice a 3D matrix
 def slice_3Dmatrix(array, window, overlap, index=None, save_coords=False):
-    # Calculate steps
-    steps_x = int(math.ceil((len(array) - overlap[0]) /
-                            float(window[0] - overlap[0])))
-    steps_y = int(math.ceil((len(array[0]) - overlap[1]) /
-                            float(window[1] - overlap[1])))
-    steps_z = int(math.ceil((len(array[0][0]) - overlap[2]) /
-                            float(window[2] - overlap[2])))
+    """
+    Slice a 3D matrix into overlapping patches.
 
-    # print('slice3d', array.shape)
+    Args:
+        array (np.ndarray): Input 3D array.
+        window (tuple): Patch size (Dx, Dy, Dz).
+        overlap (tuple): Overlap size (Dx, Dy, Dz).
+        index (int, optional): Identifier for the subject/sample.
+        save_coords (bool): Whether to save coordinate information.
+
+    Returns:
+        list: List of 3D patches.
+        (optional) list: Corresponding coordinate dictionaries.
+    """
+    # Calculate steps
+    steps_x = int(math.ceil((len(array) - overlap[0]) / float(window[0] - overlap[0])))
+    steps_y = int(math.ceil((len(array[0]) - overlap[1]) / float(window[1] - overlap[1])))
+    steps_z = int(math.ceil((len(array[0][0]) - overlap[2]) / float(window[2] - overlap[2])))
+
     # Iterate over it x,y,z
     patches = []
     coords = []
@@ -184,6 +230,7 @@ def slice_3Dmatrix(array, window, overlap, index=None, save_coords=False):
                 y_end = y_start + window[1]
                 z_start = z*window[2] - z*overlap[2]
                 z_end = z_start + window[2]
+
                 # Adjust ends
                 if(x_end > len(array)):
                     # Create an overlapping patch for the last images / edges
@@ -202,120 +249,108 @@ def slice_3Dmatrix(array, window, overlap, index=None, save_coords=False):
                     z_end = len(array[0][0])
                     # Fix for MRIs which are smaller than patch size
                     if z_start < 0 : z_start = 0
+
                 # Cut window
                 window_cut = array[x_start:x_end,y_start:y_end,z_start:z_end]
                 # Add to result list
                 patches.append(window_cut)
 
-                coord_dict = {
-                    'index': index,
-                    'x_start': x_start,
-                    'x_end': x_end,
-                    'y_start': y_start,
-                    'y_end': y_end,
-                    'z_start': z_start,
-                    'z_end': z_end
-                }
-                coords.append(coord_dict)
+                if save_coords:
+                    coords.append({
+                        'index': index,
+                        'x_start': x_start, 'x_end': x_end,
+                        'y_start': y_start, 'y_end': y_end,
+                        'z_start': z_start, 'z_end': z_end
+                    })
 
-    if not save_coords:
-        return patches
-    else:
-        return patches, coords
+    return (patches, coords) if save_coords else patches
 
 # Concatenate a list of patches together to a numpy matrix
 def concat_3Dmatrices(patches, image_size, window, overlap, coords=None):
+    """
+    Reconstruct a 3D matrix from overlapping patches.
+
+    Args:
+        patches (list): List of 3D patches.
+        image_size (tuple): Final reconstructed image shape (Dx, Dy, Dz).
+        window (tuple): Patch dimensions.
+        overlap (tuple): Overlap size in each dimension.
+        coords (list, optional): If provided, uses explicit coordinates for merging.
+
+    Returns:
+        np.ndarray: Reconstructed 3D image.
+    """
     if coords is None:
         # Calculate steps
-        steps_x = int(math.ceil((image_size[0] - overlap[0]) /
-                                float(window[0] - overlap[0])))
-        steps_y = int(math.ceil((image_size[1] - overlap[1]) /
-                                float(window[1] - overlap[1])))
-        steps_z = int(math.ceil((image_size[2] - overlap[2]) /
-                                float(window[2] - overlap[2])))
+        steps_x = int(math.ceil((image_size[0] - overlap[0]) / float(window[0] - overlap[0])))
+        steps_y = int(math.ceil((image_size[1] - overlap[1]) / float(window[1] - overlap[1])))
+        steps_z = int(math.ceil((image_size[2] - overlap[2]) / float(window[2] - overlap[2])))
 
-        # print('steps_z', steps_z)
-
-        # Iterate over it x,y,z
         matrix_x = None
         matrix_y = None
         matrix_z = None
         pointer = 0
-
         counts = np.zeros((steps_x, steps_y, steps_z))
-        # print('counts.shape', counts.shape)
-        # print('patches', patches.shape)
+
+        # Iterate over it x,y,z
         for x in range(0, steps_x):
             for y in range(0, steps_y):
                 for z in range(0, steps_z):
                     # Calculate pointer from 3D steps to 1D list of patches
                     pointer = z + y*steps_z + x*steps_y*steps_z
+
                     # Connect current patch to temporary Matrix Z
                     if z == 0:
                         matrix_z = patches[pointer]
                     else:
                         matrix_p = patches[pointer]
-                        # print('matrix_p', matrix_p.shape)
                         # Handle z-axis overlap
-                        # print('z',x, y, z)
-                        counts[x,y,z]+=1
-                        slice_overlap = calculate_overlap(z, steps_z, overlap,
-                                                          image_size, window, 2)
-                        matrix_z, matrix_p = handle_overlap(matrix_z, matrix_p,
-                                                            slice_overlap,
-                                                            axis=2)
-                        matrix_z = np.concatenate((matrix_z, matrix_p),
-                                                  axis=2)
+                        counts[x, y, z] += 1
+                        slice_overlap = calculate_overlap(z, steps_z, overlap, image_size, window, 2)
+                        matrix_z, matrix_p = handle_overlap(matrix_z, matrix_p, slice_overlap, axis=2)
+                        matrix_z = np.concatenate((matrix_z, matrix_p), axis=2)
+                        
                 # Connect current tmp Matrix Z to tmp Matrix Y
                 if y == 0:
                     matrix_y = matrix_z
                 else:
                     # Handle y-axis overlap
-                    # print('y', x, y, z)
                     counts[x, y, z] += 1
-                    slice_overlap = calculate_overlap(y, steps_y, overlap,
-                                                      image_size, window, 1)
-                    matrix_y, matrix_z = handle_overlap(matrix_y, matrix_z,
-                                                        slice_overlap,
-                                                        axis=1)
+                    slice_overlap = calculate_overlap(y, steps_y, overlap, image_size, window, 1)
+                    matrix_y, matrix_z = handle_overlap(matrix_y, matrix_z, slice_overlap, axis=1)
                     matrix_y = np.concatenate((matrix_y, matrix_z), axis=1)
+
             # Connect current tmp Matrix Y to final Matrix X
             if x == 0:
                 matrix_x = matrix_y
             else:
                 # Handle x-axis overlap
-                # print('x', x, y, z)
-                counts[x, y, z] += 1
-                slice_overlap = calculate_overlap(x, steps_x, overlap,
-                                                  image_size, window, 0)
-                matrix_x, matrix_y = handle_overlap(matrix_x, matrix_y,
-                                                    slice_overlap,
-                                                    axis=0)
+                slice_overlap = calculate_overlap(x, steps_x, overlap, image_size, window, 0)
+                matrix_x, matrix_y = handle_overlap(matrix_x, matrix_y, slice_overlap, axis=0)
                 matrix_x = np.concatenate((matrix_x, matrix_y), axis=0)
+
         # Return final combined matrix
         return (matrix_x)
+    
     else:
         img = np.zeros(image_size, dtype=np.float32)
         counts = np.zeros(image_size, dtype=np.float32)
+
         for ci, coord in enumerate(coords):
             sub_index = coord['index']
-            x_start = coord['x_start']
-            x_end = coord['x_end']
-            y_start = coord['y_start']
-            y_end = coord['y_end']
-            z_start = coord['z_start']
-            z_end = coord['z_end']
+            x_start, x_end = coord['x_start'], coord['x_end']
+            y_start, y_end = coord['y_start'], coord['y_end']
+            z_start, z_end = coord['z_start'], coord['z_end']
             dataloader_idx = coord['dataloader_idx']
-            if dataloader_idx != ci:
-                print('patches were shuffle, please be careful!')
+            # if dataloader_idx != ci:
+            #     print('patches were shuffle, please be careful!')
             patch = patches[dataloader_idx, :, :, :]
 
-            img[x_start:x_end, y_start:y_end, z_start:z_end]+=patch
-            counts[x_start:x_end, y_start:y_end, z_start:z_end]+=1
+            img[x_start:x_end, y_start:y_end, z_start:z_end] += patch
+            counts[x_start:x_end, y_start:y_end, z_start:z_end] += 1
 
         counts[counts == 0] = 1
         img /= counts
-        print('img.shape', counts.shape, img.shape, counts[counts>1])
         return img
 
 
@@ -324,20 +359,46 @@ def concat_3Dmatrices(patches, image_size, window, overlap, coords=None):
 #-----------------------------------------------------#
 # Calculate the overlap of the current matrix slice
 def calculate_overlap(pointer, steps, overlap, image_size, window, axis):
-            # Overlap: IF last axis-layer -> use special overlap size
-            if pointer == steps-1 and not (image_size[axis]-overlap[axis]) \
-                                            % (window[axis]-overlap[axis]) == 0:
-                current_overlap = window[axis] - \
-                                  (image_size[axis] - overlap[axis]) % \
-                                  (window[axis] - overlap[axis])
-            # Overlap: ELSE -> use default overlap size
-            else:
-                current_overlap = overlap[axis]
-            # Return overlap
-            return current_overlap
+    """
+    Calculate overlap size for boundary patches.
+
+    Args:
+        pointer (int): Current step index.
+        steps (int): Total number of steps.
+        overlap (tuple): Default overlap sizes.
+        image_size (tuple): Final image size.
+        window (tuple): Patch size.
+        axis (int): Dimension along which to compute.
+
+    Returns:
+        int: Overlap size.
+    """
+    # Overlap: IF last axis-layer -> use special overlap size
+    if pointer == steps-1 and not (image_size[axis]-overlap[axis]) \
+                                    % (window[axis]-overlap[axis]) == 0:
+        current_overlap = window[axis] - \
+                            (image_size[axis] - overlap[axis]) % \
+                            (window[axis] - overlap[axis])
+    # Overlap: ELSE -> use default overlap size
+    else:
+        current_overlap = overlap[axis]
+    # Return overlap
+    return current_overlap
 
 # Handle the overlap of two overlapping matrices
 def handle_overlap(matrixA, matrixB, overlap, axis):
+    """
+    Merge two overlapping matrices by averaging overlapping regions.
+
+    Args:
+        matrixA (np.ndarray): First matrix.
+        matrixB (np.ndarray): Second matrix.
+        overlap (int): Overlap size.
+        axis (int): Axis along which overlap occurs.
+
+    Returns:
+        tuple: Updated matrixA and matrixB after resolving overlap.
+    """
     # Access overllaping slice from matrix A
     idxA = [slice(None)] * matrixA.ndim
     matrixA_shape = matrixA.shape

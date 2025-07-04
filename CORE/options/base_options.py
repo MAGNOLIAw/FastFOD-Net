@@ -23,15 +23,15 @@ class BaseOptions():
         parser.add_argument('--gpu_ids', type=str, default='', help='gpu ids: e.g. 0  0,1,2, 0,2. use -1 for CPU')
         parser.add_argument('--checkpoints_dir', type=str, default='./checkpoints', help='models are saved here')
         # model parameters
-        parser.add_argument('--model', type=str, default='cycle_gan', help='chooses which model to use. [cycle_gan | pix2pix | test | colorization]')
+        parser.add_argument('--model', type=str, default='re', help='chooses which model to use. [cycle_gan | pix2pix | test | colorization]')
         parser.add_argument('--input_nc', type=int, default=3, help='# of input image channels: 3 for RGB and 1 for grayscale')
         parser.add_argument('--output_nc', type=int, default=3, help='# of output image channels: 3 for RGB and 1 for grayscale')
-        parser.add_argument('--net_inpaint', type=str, default='gate', help='[vanilla | gate]')
+        parser.add_argument('--net_inpaint', type=str, default='fastfodnet', help='[vanilla | gate]')
         parser.add_argument('--norm', type=str, default='batch', help='[batch | none]')
         parser.add_argument('--init_type', type=str, default='normal', help='network initialization [normal | xavier | kaiming | orthogonal]')
         parser.add_argument('--init_gain', type=float, default=0.02, help='scaling factor for normal, xavier and orthogonal.')
         # dataset parameters
-        parser.add_argument('--dataset_mode', type=str, default='brain', help='chooses how datasets are loaded. [brain | [to be implemented following base_dataset]]')
+        parser.add_argument('--dataset_mode', type=str, default='fod_re', help='chooses how datasets are loaded. [brain | [to be implemented following base_dataset]]')
         parser.add_argument('--serial_batches', action='store_true', help='if true, takes images in order to make batches, otherwise takes them randomly')
         parser.add_argument('--num_threads', default=4, type=int, help='# threads for loading data')
         parser.add_argument('--batch_size', type=int, default=1, help='input batch size')

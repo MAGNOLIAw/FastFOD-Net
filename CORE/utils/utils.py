@@ -1,29 +1,8 @@
 import os
 import time
-import math
 import numpy as np
 from tensorboardX import SummaryWriter
 import csv
-
-"""
-# the 'Mean Squared Error' between the two images is the
-    # sum of the squared difference between the two images
-"""
-def mse(imageA, imageB):
-    err = np.sum((imageA.astype("float") - imageB.astype("float")) ** 2)
-    err /= len(imageA)
-
-    return err
-
-
-def psnr2(img1, img2, valid):
-    mae = np.sum(img1 - img2) / valid
-    mse = (np.sum((img1 - img2) ** 2)) / valid
-    if mse < 1.0e-10:
-      return 100
-    PIXEL_MAX = 1
-    # print(mse)
-    return mae, mse, 20 * math.log10(PIXEL_MAX / math.sqrt(mse))
 
 def pad_dynamic(b_slice, mask_slice, sag, cor, pad_size, pad_gap=4):
     b_temp = b_slice.copy()
@@ -57,7 +36,6 @@ def pad_dynamic(b_slice, mask_slice, sag, cor, pad_size, pad_gap=4):
 
     return b_temp, m_temp, cor_pad, sag_pad
 
-
 def pad_fixed(b_slice, mask_slice, dim1, dim2):
     pad_width = round((256 - dim2) / 2)
     pad_width1 = round((256 - dim1) / 2)
@@ -82,7 +60,6 @@ def pad_fixed(b_slice, mask_slice, dim1, dim2):
 
     return b_temp, m_temp
 
-
 def unpad(comp, dim1, dim2):
     pad_width = round((256 - dim2) / 2)
     pad_width1 = round((256 - dim1) / 2)
@@ -101,23 +78,19 @@ def unpad(comp, dim1, dim2):
 
     return temp
 
+# -----------------------------------------------------#
+#                   Utility Functions                  #
+# -----------------------------------------------------#
 # Create an evaluation subdirectory and change path
 def create_directories(eval_path, subeval_path=None):
-    # Create evaluation directory if necessary
-    if not os.path.exists(eval_path):
-        os.mkdir(eval_path)
-    # Create evaluation subdirectory if necessary
+    os.makedirs(eval_path, exist_ok=True)
     if subeval_path is not None:
-        # Concatenate evaluation subdirectory path if present
         subdir = os.path.join(eval_path, subeval_path)
-        # Set up the evaluation subdirectory
-        if not os.path.exists(subdir):
-            os.mkdir(subdir)
-        # Return path to evaluation subdirectory
+        os.makedirs(subdir, exist_ok=True)
         return subdir
 
 # -----------------------------------------------------#
-#                   CSV Management                    #
+#                   CSV Management                     #
 # -----------------------------------------------------#
 # Subfunction for writing a fold sampling to disk
 def write_fold2csv(file_path, training, validation):
@@ -139,38 +112,40 @@ def load_csv2fold(file_path):
                 validation = row[1:]
     return training, validation
 
-    # -----------------------------------------------------#
-    #           Splitted k-fold Cross-Validation          #
-    # -----------------------------------------------------#
-    """ Function for splitting a data set into k-folds. The splitting will be saved
-        in files, which can be used for running a single fold run.
-        In contrast to the normal cross_validation() function, this allows running
-        folds parallelized on multiple GPUs.
+# -----------------------------------------------------#
+#           Splitted k-fold Cross-Validation          #
+# -----------------------------------------------------#
+""" Function for splitting a data set into k-folds. The splitting will be saved
+    in files, which can be used for running a single fold run.
+    In contrast to the normal cross_validation() function, this allows running
+    folds parallelized on multiple GPUs.
 
-    Args:
-        sample_list (list of indices):          A list of sample indicies which will be used for validation.
-        k_fold (integer):                       The number of k-folds for the Cross-Validation. By default, a
-                                                3-fold Cross-Validation is performed.
-    """
-def split_folds(self, sample_list, k_fold=5, evaluation_path="evaluation"):
+Args:
+    sample_list (list of indices):          A list of sample indicies which will be used for validation.
+    k_fold (integer):                       The number of k-folds for the Cross-Validation. By default, a
+                                            3-fold Cross-Validation is performed.
+"""
+def split_folds(sample_list, k_fold=5, evaluation_path="evaluation"):
     # Randomly permute the sample list
     # samples_permuted = np.random.permutation(sample_list)
     samples_permuted = sample_list
+
     # Split sample list into folds
     folds = np.array_split(samples_permuted, k_fold)
     fold_indices = list(range(len(folds)))
+
     # Iterate over each fold
     for i in fold_indices:
         # Subset training and validation data set
-        training = np.concatenate([folds[x] for x in fold_indices if x != i],
-                                  axis=0)
+        training = np.concatenate([folds[x] for x in fold_indices if x != i], axis=0)
         validation = folds[i]
         # Initialize evaluation subdirectory for current fold
-        subdir = self.create_directories(evaluation_path, "fold_" + str(i))
+        subdir = create_directories(evaluation_path, "fold_" + str(i))
         fold_cache = os.path.join(subdir, "sample_list.csv")
         # Write sampling to disk
-        self.write_fold2csv(fold_cache, training, validation)
+        write_fold2csv(fold_cache, training, validation)
 
+        print(f"Fold {i}: Training = {training.shape}, Validation = {validation.shape}")    
 
 class Recorder():
     """

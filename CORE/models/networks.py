@@ -4,9 +4,7 @@ from torch.nn import init
 import functools
 from torch.optim import lr_scheduler
 
-
-from .gate_3d import GateUNet3D
-from .fastfodnet_3d import FastFODNet
+from .fastfodnet import FastFODNet
 ###############################################################################
 # Helper Functions
 ###############################################################################
@@ -17,23 +15,25 @@ class Identity(nn.Module):
         return x
 
 
-def get_norm_layer(norm_type='instance'):
-    """Return a normalization layer
-
-    Parameters:
-        norm_type (str) -- the name of the normalization layer: batch | instance | none
-
-    For BatchNorm, we use learnable affine parameters and track running statistics (mean/stddev).
-    For InstanceNorm, we do not use learnable affine parameters. We do not track running statistics.
-    """
-    if norm_type == 'batch':
-        norm_layer = functools.partial(nn.BatchNorm2d, affine=True, track_running_stats=True)
-    elif norm_type == 'instance':
-        norm_layer = functools.partial(nn.InstanceNorm2d, affine=False, track_running_stats=False)
-    elif norm_type == 'none':
-        def norm_layer(x): return Identity()
+def get_norm_layer(norm_type='instance', dim=3):
+    """Return a normalization layer."""
+    if dim == 2:
+        bn = nn.BatchNorm2d
+        inorm = nn.InstanceNorm2d
+    elif dim == 3:
+        bn = nn.BatchNorm3d
+        inorm = nn.InstanceNorm3d
     else:
-        raise NotImplementedError('normalization layer [%s] is not found' % norm_type)
+        raise ValueError('Unsupported normalization dimension')
+
+    if norm_type == 'batch':
+        norm_layer = functools.partial(bn, affine=True, track_running_stats=True)
+    elif norm_type == 'instance':
+        norm_layer = functools.partial(inorm, affine=False, track_running_stats=False)
+    elif norm_type == 'none':
+        def norm_layer(_): return Identity()
+    else:
+        raise NotImplementedError('Normalization layer [%s] not found' % norm_type)
     return norm_layer
 
 
@@ -141,50 +141,9 @@ def define_net(input_nc, output_nc, net_name, norm='batch', init_type='normal', 
     batch_norm = False
     if norm == 'batch':
         batch_norm = True
-    print('net_name', net_name)
-    if net_name == 'unet':
-        net = UNet3Dv1(input_nc, output_nc)
-    elif net_name == 'fastfodnet':
-        net = FastFODNet(input_nc, output_nc)
-    elif net_name == 'unet_c64':
-        net = UNet3Dv1c64(input_nc, output_nc)
-    elif net_name == 'gate_unet':
-        net = GateUNet3D(input_nc, output_nc)
-    elif net_name == 'ocenet':
-        net = OCENET(input_nc, output_nc)
-        # print(net)
-    elif net_name == 'unet_le':
-        architecture = UNet3D(input_nc, output_nc)
-        all_layers = dict([*architecture.named_modules()])
-        intermediate_layers = []
-        for name, layer in all_layers.items():
-            print('name', name)
-            if '_2' in name and (len(name.split(".")) == 1):
-                intermediate_layers.append(name)
-        print('intermediate_layers', intermediate_layers)
-        model = LayerEnsembles(architecture, intermediate_layers)
-
-        # Dummy input to get the output shapes of the layers
-        x = torch.zeros(output_shape)
-        output = model(x)
-        out_channels = []
-        scale_factors = []
-        for key, val in output.items():
-            out_channels.append(val.shape[1])
-            scale_factors.append(output_shape[-1] // val.shape[-1])
-            # scale_factors.append(1)
-        print('out_channesl', out_channels)
-        print('scale_factors', out_channels)
-        # Set the output heads with the number of channels of the output layers
-        model.set_output_heads(in_channels=out_channels, scale_factors=scale_factors, task=Task.SR3D,
-                               classes=45)
-        net = model
-    elif net_name == 'bayesian_unet':
-        net = BUNet3D(input_nc, output_nc)
-    elif net_name == 'unet_dp':
-        net = UNet3dDp(input_nc, output_nc)
-    elif net_name == 'aleatoric':
-        net = WhatModel()
+    norm_layer = get_norm_layer(norm_type=norm)
+    if net_name == 'fastfodnet':
+        net = FastFODNet(input_nc, output_nc, norm_layer=norm_layer)
     else:
         raise NotImplementedError('Generator model name [%s] is not recognized' % net_name)
     return init_net(net, init_type, init_gain, gpu_ids)

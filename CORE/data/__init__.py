@@ -1,3 +1,6 @@
+from utils.logger import setup_logger
+logger = setup_logger()
+
 """
 This package includes all the modules related to data loading and preprocessing
 
@@ -11,6 +14,7 @@ This package includes all the modules related to data loading and preprocessing
 Now you can use the dataset class by specifying flag '--dataset_mode dummy'.
 We have implemented 'brain_dataset' for reference.
 """
+
 import importlib
 import torch.utils.data
 
@@ -66,7 +70,8 @@ class CustomDatasetDataLoader():
         self.opt = opt
         dataset_class = find_dataset_using_name(opt.dataset_mode)
         self.dataset = dataset_class(opt)
-        print("dataset [%s] was created" % type(self.dataset).__name__)
+        logger.info("Dataset [%s] was created", type(self.dataset).__name__)
+        # print("dataset [%s] was created" % type(self.dataset).__name__)
         self.dataloader = torch.utils.data.DataLoader(
             self.dataset,
             batch_size=opt.batch_size,
