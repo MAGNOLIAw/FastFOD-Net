@@ -21,7 +21,7 @@ With the most comprehensive clinical evaluation to date, our work demonstrates t
 
 ## Outline
 1. [Introduction](#fastfod-net)  
-2. [Dataset](#dataset)  
+2. [Data Preprocessing](#dataprocessing)  
 3. [Usage](#usage)  
    - [Training](#training)  
    - [Inference](#inference)  
@@ -35,8 +35,13 @@ With the most comprehensive clinical evaluation to date, our work demonstrates t
 4. [References](#references)  
 
    
-## Dataset
-[HCP Dataset](https://www.humanconnectome.org/)
+## Data Preprocessing
+1. [DWI Denoising](https://mrtrix.readthedocs.io/en/latest/dwi_preprocessing/denoising.html)
+2. [DWI Distortion Correction)(https://mrtrix.readthedocs.io/en/latest/dwi_preprocessing/dwifslpreproc.html)
+3. FOD Generation
+   - [Response Function Estimation](https://mrtrix.readthedocs.io/en/latest/constrained_spherical_deconvolution/response_function_estimation.html)
+   - [SS3T CSD](https://mrtrix.readthedocs.io/en/latest/constrained_spherical_deconvolution/constrained_spherical_deconvolution.html)
+   - [MSMT CSD](https://mrtrix.readthedocs.io/en/latest/constrained_spherical_deconvolution/multi_shell_multi_tissue_csd.html)
 
 ## Basic Usages
 ### **Training**
