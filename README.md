@@ -127,24 +127,6 @@ To generate fixel data from FOD images:
 cd ./evaluation
 python generate_fixel.py
 ```
-
-#### 🛠 Generate ROIs
-
-Bundle-wise ROIs can be generated using [TractSeg](https://github.com/MIC-DKFZ/TractSeg), a tool for white matter tract segmentation.
-
-We use specific bundles to define regions of different fiber complexity:
-
-- **Single-fiber region:**  
-  - `CC` (Corpus Callosum)
-
-- **Two-crossing-fiber regions:**  
-  - `MCP` (Middle Cerebellar Peduncle)  
-  - `CST` (Corticospinal Tract)
-
-- **Three-crossing-fiber regions:**  
-  - `SLF` (Superior Longitudinal Fasciculus)  
-  - `CST`  
-  - `CC`
  
 #### 🛠 Generate ROIs
 
