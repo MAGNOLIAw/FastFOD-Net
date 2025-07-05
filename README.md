@@ -1,69 +1,45 @@
 # 🧠 From Promise to Practical Reality: Transforming Diffusion MRI Analysis with Fast Deep Learning Enhancement
 
-> [Xinyi Wang](https://scholar.google.com/citations?user=_uPPBqUAAAAJ&hl=en)  
-> [Michael Barnett](https://scholar.google.com.au/citations?user=iZVWDzwAAAAJ&hl=en)  
-> [Frederique Boonstra](https://scholar.google.com.au/citations?user=xHxerDoAAAAJ&hl=en)  
-> [Yael Barnett](https://scholar.google.com.au/citations?hl=en&user=TVSkAYsAAAAJ)  
-> [Mariano Cabezas](https://scholar.google.com.au/citations?hl=en&user=zPs-kAkAAAAJ)  
-> [Arkiev D'Souza](https://scholar.google.com.au/citations?user=eqO2au8AAAAJ&hl=en)  
-> [Matthew C. Kiernan](https://scholar.google.com.au/citations?user=J7M4CGMAAAAJ&hl=en)  
-> Kain Kyle  
-> [Meng Law](https://scholar.google.com.au/citations?user=lKi-yTMAAAAJ&hl=en)  
-> Lynette Masters  
-> [Zihao Tang](https://scholar.google.com.au/citations?user=JAfD8moAAAAJ&hl=en)  
-> [Stephen Tisch](https://scholar.google.com.au/citations?hl=en&user=hnKJB1YAAAAJ)  
-> [Sicong Tu](https://scholar.google.com.au/citations?hl=en&user=z44EzHAAAAAJ)  
-> [Anneke Van Der Walt](https://scholar.google.com.au/citations?hl=en&user=F3AJeqQAAAAJ)  
-> [Dongang Wang](https://scholar.google.com.au/citations?hl=en&user=Rs7zEZoAAAAJ)  
-> [Fernando Calamante](https://scholar.google.com.au/citations?user=_6_n0PIAAAAJ&hl=en)\*  
-> [Weidong Cai](https://scholar.google.com.au/citations?hl=en&user=N8qTc2AAAAAJ)\*  
-> [Chenyu Wang](https://scholar.google.com.au/citations?user=mo0AoZAAAAAJ&hl=en)\*  
 
-> \* These authors contributed equally as senior authors.
-
+>
+> [Xinyi Wang](https://scholar.google.com/citations?user=_uPPBqUAAAAJ&hl=en), [Michael Barnett](https://scholar.google.com.au/citations?user=iZVWDzwAAAAJ&hl=en), [Frederique Boonstra](https://scholar.google.com.au/citations?user=xHxerDoAAAAJ&hl=en&oi=ao), [Yael Barnett](https://scholar.google.com.au/citations?hl=en&user=TVSkAYsAAAAJ), [Mariano Cabezas](https://scholar.google.com.au/citations?hl=en&user=zPs-kAkAAAAJ&view_op=list_works&sortby=pubdate), [Arkiev D'Souza](https://scholar.google.com.au/citations?user=eqO2au8AAAAJ&hl=en&oi=ao), [Matthew C. Kiernan](https://scholar.google.com.au/citations?user=J7M4CGMAAAAJ&hl=en&oi=ao), Kain Kyle, [Meng Law](https://scholar.google.com.au/citations?user=lKi-yTMAAAAJ&hl=en&oi=ao), Lynette Masters, [Zihao Tang](https://scholar.google.com.au/citations?user=JAfD8moAAAAJ&hl=en&oi=ao), [Stephen Tisch](https://scholar.google.com.au/citations?hl=en&user=hnKJB1YAAAAJ), [Sicong Tu](https://scholar.google.com.au/citations?hl=en&user=z44EzHAAAAAJ), [Anneke Van Der Walt](https://scholar.google.com.au/citations?hl=en&user=F3AJeqQAAAAJ), [Dongang Wang](https://scholar.google.com.au/citations?hl=en&user=Rs7zEZoAAAAJ), [Fernando Calamante](https://scholar.google.com.au/citations?user=_6_n0PIAAAAJ&hl=en&oi=ao)\*, [Weidong Cai](https://scholar.google.com.au/citations?hl=en&user=N8qTc2AAAAAJ)\*, [Chenyu Wang](https://scholar.google.com.au/citations?user=mo0AoZAAAAAJ&hl=en&oi=ao)\*
+>
+\* These authors contributed equally as senior authors.
+>
+>
+> 🔬 **Abstract** 
+> Fiber orientation distribution (FOD) is an advanced diffusion MRI modeling technique that represents complex white matter fiber configurations, and a key step for subsequent brain tractography and connectome analysis. Its reliability and accuracy, however, heavily rely on the quality of the MRI acquisition and the subsequent estimation of the FODs at each voxel. Generating reliable FODs from widely available clinical protocols with single-shell and low-angular-resolution acquisitions remains challenging but could potentially be addressed with recent advances in deep learning-based enhancement techniques. Despite advancements, existing methods have predominantly been assessed on healthy subjects, which have proved to be a major hurdle for their clinical adoption. In this work, we validate a newly optimized enhancement framework, FastFOD-Net, across healthy controls and six neurological disorders. 
+This accelerated end-to-end deep learning framework enhancing FODs with superior performance and delivering training/inference efficiency for clinical use ($60\times$ faster comparing to its predecessor).
+With the most comprehensive clinical evaluation to date, our work demonstrates the potential of FastFOD-Net in accelerating clinical neuroscience research, empowering diffusion MRI analysis for disease differentiation, improving interpretability in connectome applications, and reducing measurement errors to lower sample size requirements. Critically, this work will facilitate the more widespread adoption of, and build clinical trust in, deep learning based methods for diffusion MRI enhancement.  Specifically, FastFOD-Net enables robust analysis of real-world, clinical diffusion MRI data, comparable to that achievable with high-quality research acquisitions.
+<!-- > ![image](https://user-images.githubusercontent.com/39485479/227234185-074da035-f4f9-4e12-bd3e-e5070167ba74.png) -->
+>
 ---
-
-### 🔬 Abstract
-
-Fiber orientation distribution (FOD) models are vital for analyzing complex white matter fiber configurations and supporting tractography/connectome pipelines. Clinical use, however, is limited due to quality constraints in routine diffusion MRI.
-
-We present **FastFOD-Net**, a fast, end-to-end deep learning framework for FOD enhancement. It delivers high accuracy across **six neurological disorders**, with **60× speedup** over its predecessor. This work demonstrates the framework's clinical viability and encourages trust in deep learning-enhanced diffusion MRI for real-world data.
 
 > [[🌐 Project Page]](https://fastfodnet.github.io/)
 
 <p align="center">
   <img src="./teaser.png" alt="FastFOD-Net Teaser" width="80%">
 </p>
-
 ---
 
-> [[Project page]](https://fastfodnet.github.io/)
->
-> ![FastFOD-Net](./teaser.png)
+## 📚 Table of Contents
 
-## Outline
-1. [Introduction](#fastfod-net)  
-2. [Data Preprocessing](#dataprocessing)  
+1. [Introduction](#🔬-abstract)  
+2. [Data Preprocessing](#data-preprocessing)  
 3. [Usage](#usage)  
-   - [Training](#training)  
-   - [Inference](#inference)  
 4. [Evaluation](#evaluation)  
-   - [FOD Evaluation](#fod-evaluation)  
-   - [Fiber Bundle Element "fixel" Evaluation](#fiber-bundle-element-fixel-evaluation)  
-   - [Connectome Evaluation](#connectome-evaluation)  
-   - [Fixel-Based Analysis](#fixel-based-analysis)  
-   - [Pathological Connection Analysis](#pathological-connection-analysis)  
-   - [Correlation Analysis](#correlation-analysis)  
-4. [References](#references)  
+5. [Citation](#citation)  
+6. [Acknowledgments](#acknowledgments)  
 
 ---
-## Data Preprocessing
-1. [DWI Denoising](https://mrtrix.readthedocs.io/en/latest/dwi_preprocessing/denoising.html)
-2. [DWI Distortion Correction](https://mrtrix.readthedocs.io/en/latest/dwi_preprocessing/dwifslpreproc.html)
-3. FOD Generation
-   - [Response Function Estimation](https://mrtrix.readthedocs.io/en/latest/constrained_spherical_deconvolution/response_function_estimation.html)
-   - [SS3T CSD](https://mrtrix.readthedocs.io/en/latest/constrained_spherical_deconvolution/constrained_spherical_deconvolution.html)
-   - [MSMT CSD](https://mrtrix.readthedocs.io/en/latest/constrained_spherical_deconvolution/multi_shell_multi_tissue_csd.html)
+## 🧼 Data Preprocessing
+
+- [Denoising](https://mrtrix.readthedocs.io/en/latest/dwi_preprocessing/denoising.html)  
+- [Distortion Correction](https://mrtrix.readthedocs.io/en/latest/dwi_preprocessing/dwifslpreproc.html)  
+- **FOD Generation:**
+  - [Response Estimation](https://mrtrix.readthedocs.io/en/latest/constrained_spherical_deconvolution/response_function_estimation.html)
+  - [SS3T CSD](https://mrtrix.readthedocs.io/en/latest/constrained_spherical_deconvolution/constrained_spherical_deconvolution.html)
+  - [MSMT CSD](https://mrtrix.readthedocs.io/en/latest/constrained_spherical_deconvolution/multi_shell_multi_tissue_csd.html)
 
 ---
 ## 📘 Description of Arguments
