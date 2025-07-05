@@ -93,14 +93,24 @@ sh test_msbir.sh
 - 📝 Ensure the --phase is set to test or similar.
 
 
-## Evaluation Pipeline
-TBC
+## 🧪 Evaluation Pipeline
 
-### FOD evaluation
+This pipeline provides tools for evaluating the performance of Fibre Orientation Distribution enhancement methods using a set of quantitative metrics from different perspectives.
+
+
+### FOD Evaluation
+The following metrics are computed in `evaluation_fod.py`:
+- **MSE**: Mean Squared Error   
+- **PSNR**: Peak Signal-to-Noise Ratio  
+- **$r_{\text{Angular}}$**: Angular correlation coefficient
+  
+#### 🔧 Example Usage
+To run FOD evaluation:
 ```
-cd /evaluation
-python evaluation_fod.py
+cd ./evaluation
+python run_fod_metrics.py
 ```
+
 ### Fiber Bundle Element "fixel" Evaluation
 - Generate fixel
 ```
