@@ -12,7 +12,8 @@
 This accelerated end-to-end deep learning framework enhancing FODs with superior performance and delivering training/inference efficiency for clinical use ($60\times$ faster comparing to its predecessor).
 With the most comprehensive clinical evaluation to date, our work demonstrates the potential of FastFOD-Net in accelerating clinical neuroscience research, empowering diffusion MRI analysis for disease differentiation, improving interpretability in connectome applications, and reducing measurement errors to lower sample size requirements. Critically, this work will facilitate the more widespread adoption of, and build clinical trust in, deep learning based methods for diffusion MRI enhancement.  Specifically, FastFOD-Net enables robust analysis of real-world, clinical diffusion MRI data, comparable to that achievable with high-quality research acquisitions.
 <!-- > ![image](https://user-images.githubusercontent.com/39485479/227234185-074da035-f4f9-4e12-bd3e-e5070167ba74.png) -->
->
+
+
 ---
 
 > [[🌐 Project Page]](https://fastfodnet.github.io/)
@@ -20,6 +21,7 @@ With the most comprehensive clinical evaluation to date, our work demonstrates t
 <p align="center">
   <img src="./teaser.png" alt="FastFOD-Net Teaser" width="80%">
 </p>
+
 ---
 
 ## 📚 Table of Contents
@@ -43,6 +45,7 @@ With the most comprehensive clinical evaluation to date, our work demonstrates t
   - [MSMT CSD](https://mrtrix.readthedocs.io/en/latest/constrained_spherical_deconvolution/multi_shell_multi_tissue_csd.html)
 
 ---
+
 ## 📘 Description of Arguments
 | Argument                     | Description                                                    |
 | ---------------------------- | -------------------------------------------------------------- |
