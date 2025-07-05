@@ -68,9 +68,11 @@ With the most comprehensive clinical evaluation to date, our work demonstrates t
   - [MSMT CSD](https://mrtrix.readthedocs.io/en/latest/constrained_spherical_deconvolution/multi_shell_multi_tissue_csd.html)
   
 [🔝 Back to Table of Contents](#-table-of-contents)
+
 ---
 
 ## 📘 Description of Arguments
+
 | Argument                     | Description                                                    |
 | ---------------------------- | -------------------------------------------------------------- |
 | `--dataroot`                 | Path to low-resolution FOD input data.                         |
