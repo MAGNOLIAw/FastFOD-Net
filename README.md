@@ -179,6 +179,7 @@ cd ./evaluation
 python run_fixel_metrics.py
 ```
 ---
+
 ### Connectome evaluation
 
 #### 🛠 [Structure Connectome Construction](https://mrtrix.readthedocs.io/en/latest/quantitative_structural_connectivity/structural_connectome.html)
@@ -212,28 +213,33 @@ cd ./evaluation
 python run_connectome_metrics.py
 ```
 
+---
 
 ### Fixel-based analysis
-check if significant differences between patients and controls can be preseved after useing deep leanring 
+Compare patient-control differences post-enhancement
 1. [Fixel-based analysis for MSMT CSD](https://mrtrix.readthedocs.io/en/latest/fixel_based_analysis/st_fibre_density_cross-section.html)
-2. Fixel matching in [`./evaluation/evaluaation_fixel.py`](./evaluation/graph_metrics.py) between methods for comparision
-3. Stats
+2. Register pre-enhancement, post-enhancement results all to the reference (i.e., MSMT CSD) template space
+3. Fixel matching and stats in [`./evaluation/evaluaation_fixel.py`](./evaluation/graph_metrics.py) between methods for comparision
 
+---
 
 ### Pathological connection analysis
 TBC
 
+---
 ### Correlation analysis
 TBC
 
-## Citation
+---
+## 📝 Citation
 If you find our data or project useful in your research, please cite:
-
 ```
 TBC
 @inproceedings{
 }
 ```
-#### Acknowledgments
+
+---
+#### 🤝 Acknowledgments
 This repo. template was borrowed from [Chaoyi Zhang's Project](https://github.com/chaoyivision/SGGpoint). 
 
