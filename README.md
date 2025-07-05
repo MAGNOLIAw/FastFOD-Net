@@ -34,7 +34,7 @@ With the most comprehensive clinical evaluation to date, our work demonstrates t
    - [Correlation Analysis](#correlation-analysis)  
 4. [References](#references)  
 
-   
+---
 ## Data Preprocessing
 1. [DWI Denoising](https://mrtrix.readthedocs.io/en/latest/dwi_preprocessing/denoising.html)
 2. [DWI Distortion Correction](https://mrtrix.readthedocs.io/en/latest/dwi_preprocessing/dwifslpreproc.html)
@@ -43,6 +43,7 @@ With the most comprehensive clinical evaluation to date, our work demonstrates t
    - [SS3T CSD](https://mrtrix.readthedocs.io/en/latest/constrained_spherical_deconvolution/constrained_spherical_deconvolution.html)
    - [MSMT CSD](https://mrtrix.readthedocs.io/en/latest/constrained_spherical_deconvolution/multi_shell_multi_tissue_csd.html)
 
+---
 ## 📘 Description of Arguments
 | Argument                     | Description                                                    |
 | ---------------------------- | -------------------------------------------------------------- |
@@ -73,6 +74,8 @@ With the most comprehensive clinical evaluation to date, our work demonstrates t
 | `--sample_gt_suffix`         | File suffix for ground truth FODs.                             |
 | `--foldroot`                 | Directory containing train/test splits.                        |
 
+---
+
 ## Basic Usages
 ### 🏋️‍♂️ Training
 To start training FastFOD-Net using predefined parameters (e.g., for the MSBIR dataset), run:
@@ -92,12 +95,12 @@ sh test_msbir.sh
 - `test.sh` should call test_model.py or equivalent with correct model checkpoint and dataset paths.
 - 📝 Ensure the --phase is set to test or similar.
 
-
+---
 ## 🧪 Evaluation Pipeline
 
 This pipeline provides tools for evaluating the performance of Fibre Orientation Distribution enhancement methods using a set of quantitative metrics from different perspectives.
 
-
+---
 ### 📈 FOD Evaluation
 The following metrics are computed in `evaluation_fod.py`:
 - **MSE**: Mean Squared Error   
@@ -110,7 +113,7 @@ To run FOD evaluation:
 cd ./evaluation
 python run_fod_metrics.py
 ```
-
+---
 ### 🧠 Fiber Bundle Element ("Fixel") Evaluation
 
 This module evaluates fiber-specific metrics derived from fixel-based analysis.
@@ -177,7 +180,7 @@ Run the full fixel evaluation pipeline:
 cd ./evaluation
 python run_fixel_metrics.py
 ```
-
+---
 ### Connectome evaluation
 
 #### 🛠 [Structure Connectome Construction](https://mrtrix.readthedocs.io/en/latest/quantitative_structural_connectivity/structural_connectome.html)
@@ -194,8 +197,6 @@ We evaluate structural connectomes using the following metrics:
 
 📁 See implementation: [`./evaluation/connectome.py`](./evaluation/connectome.py)
 
----
-
 #### 🛠 Graph Metrics
 
 We treat the connectome as a graph and compute higher-order network properties inspired by:
@@ -203,8 +204,6 @@ We treat the connectome as a graph and compute higher-order network properties i
 - **Brain Connectivity Toolbox (BCT)**  
   - Website: [https://sites.google.com/site/bctnet/](https://sites.google.com/site/bctnet/)
 - Python implementation: [`./evaluation/graph_metrics.py`](./evaluation/graph_metrics.py)
-
----
 
 #### 📈 Example Usage
 
