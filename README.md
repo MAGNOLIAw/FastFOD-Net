@@ -98,7 +98,7 @@ sh test_msbir.sh
 This pipeline provides tools for evaluating the performance of Fibre Orientation Distribution enhancement methods using a set of quantitative metrics from different perspectives.
 
 
-### FOD Evaluation
+### 📈 FOD Evaluation
 The following metrics are computed in `evaluation_fod.py`:
 - **MSE**: Mean Squared Error   
 - **PSNR**: Peak Signal-to-Noise Ratio  
@@ -111,18 +111,113 @@ cd ./evaluation
 python run_fod_metrics.py
 ```
 
-### Fiber Bundle Element "fixel" Evaluation
-- Generate fixel
+### 🧠 Fiber Bundle Element ("Fixel") Evaluation
+
+This module evaluates fiber-specific metrics derived from fixel-based analysis.
+
+#### 🛠 Generate Fixels
+
+To generate fixel data from FOD images:
 ```
-cd /evaluation
+cd ./evaluation
 python generate_fixel.py
 ```
-- Evaluate fixels from direction, peak, AFD
+
+#### 🛠 Generate ROIs
+
+Bundle-wise ROIs can be generated using [TractSeg](https://github.com/MIC-DKFZ/TractSeg), a tool for white matter tract segmentation.
+
+We use specific bundles to define regions of different fiber complexity:
+
+- **Single-fiber region:**  
+  - `CC` (Corpus Callosum)
+
+- **Two-crossing-fiber regions:**  
+  - `MCP` (Middle Cerebellar Peduncle)  
+  - `CST` (Corticospinal Tract)
+
+- **Three-crossing-fiber regions:**  
+  - `SLF` (Superior Longitudinal Fasciculus)  
+  - `CST`  
+  - `CC`
+ 
+#### 🛠 Generate ROIs
+
+Bundle-wise ROIs can be generated using [TractSeg](https://github.com/MIC-DKFZ/TractSeg), a tool for white matter tract segmentation.
+
+We define regions with different fiber complexities using the following bundles:
+
+- **Single-fiber region:**  
+  - `CC` (Corpus Callosum)
+
+- **Two-crossing-fiber regions:**  
+  - `MCP` (Middle Cerebellar Peduncle)  
+  - `CST` (Corticospinal Tract)
+
+- **Three-crossing-fiber regions:**  
+  - `SLF` (Superior Longitudinal Fasciculus)  
+  - `CST`  
+  - `CC`
+
+🔍 *See* `./evaluation/generate_fixel_roi.py` for an example of how to generate these ROIs using results from TractSeg.*
+
+
+#### 📊 Fixel Evaluation Metrics
+
+This module performs evaluation on fixel-based metrics after fixel-wise matching between methods. Implemented in `evaluation_fixel.py`, the following metrics are computed:
+
+- **$E_{Angular}$**: Angular error between matched fixels  
+- **$E_{FD}$**: Error in Fixel Density (FD)  
+- **$E_{Peak}$**: Error in Peak
+
+#### 🔧 Example Usage
+
+Run the full fixel evaluation pipeline:
 ```
-cd /evaluation
-python evaluate_fixel.py
+cd ./evaluation
+python run_fixel_metrics.py
 ```
+
 ### Connectome evaluation
+
+#### 🛠 [Structure Connectome Construction](https://mrtrix.readthedocs.io/en/latest/quantitative_structural_connectivity/structural_connectome.html)
+1. Get a parcellation image with [FastSurfer](https://github.com/Deep-MI/FastSurfer) using [Desikan-Killiany Atlas 84](file:///Users/xinyiwang/Downloads/jnnp-2021-328185-inline-supplementary-material-1.pdf)
+2. [Anatomically-Constrained Tractography (ACT)](https://mrtrix.readthedocs.io/en/latest/quantitative_structural_connectivity/act.html)
+3. [Spherical-deconvolution Informed Filtering of Tractograms (SIFT)](https://mrtrix.readthedocs.io/en/latest/quantitative_structural_connectivity/sift.html)
+
+#### 🛠 Connectome Metrics
+
+We evaluate structural connectomes using the following metrics:
+
+- **Disparity**: Quantifies variability in edge weights within the connectome.
+- **Number of significantly different edges**: Counts edges with statistically significant differences across methods.
+
+📁 See implementation: [`./evaluation/connectome.py`](./evaluation/connectome.py)
+
+---
+
+#### 🛠 Graph Metrics
+
+We treat the connectome as a graph and compute higher-order network properties inspired by:
+
+- **Brain Connectivity Toolbox (BCT)**  
+  - Website: [https://sites.google.com/site/bctnet/](https://sites.google.com/site/bctnet/)
+- Python implementation: [`./evaluation/graph_metrics.py`](./evaluation/graph_metrics.py)
+
+---
+
+#### 📈 Example Usage
+
+To run the full pipeline of connectome and graph metric evaluation:
+
+```bash
+cd ./evaluation
+python run_connectome_metrics.py
+```
+
+
+
+
 ### Fixel-based analysis
 ### Pathological connection analysis
 ### Correlation analysis
