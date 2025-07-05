@@ -26,12 +26,35 @@ With the most comprehensive clinical evaluation to date, our work demonstrates t
 
 ## 📚 Table of Contents
 
-1. [Introduction](#🔬-abstract)  
-2. [Data Preprocessing](#data-preprocessing)  
-3. [Usage](#usage)  
-4. [Evaluation](#evaluation)  
-5. [Citation](#citation)  
-6. [Acknowledgments](#acknowledgments)  
+1. [🔬 Abstract](#-abstract)  
+2. [🧼 Data Preprocessing](#-data-preprocessing)  
+   - [Denoising](#-data-preprocessing)  
+   - [Distortion Correction](#-data-preprocessing)  
+   - [FOD Generation](#-data-preprocessing)  
+3. [📘 Description of Arguments](#-description-of-arguments)  
+4. [🧪 Usage](#-usage)  
+   - [🏋️‍♂️ Training](#-training)  
+   - [🔍 Inference](#-inference)  
+5. [🧪 Evaluation Pipeline](#-evaluation-pipeline)  
+   - [📈 FOD Evaluation](#-fod-evaluation)  
+     - [FOD Metrics](#-fod-evaluation)  
+     - [Example Usage](#-fod-evaluation)  
+   - [🧠 Fixel Evaluation](#-fiber-bundle-element-fixel-evaluation)  
+     - [Generate Fixels](#-generate-fixels)  
+     - [Generate ROIs](#-generate-rois)  
+     - [Fixel Metrics](#-fixel-evaluation-metrics)  
+     - [Example Usage](#-fixel-evaluation-metrics)  
+   - [🌐 Connectome Evaluation](#connectome-evaluation)  
+     - [Connectome Construction](#structure-connectome-construction)  
+     - [Connectome Metrics](#connectome-metrics)  
+     - [Graph Metrics](#graph-metrics)  
+     - [Example Usage](#example-usage-1)  
+   - [📊 Fixel-based Statistical Analysis](#fixel-based-analysis)  
+   - [🧩 Pathological Connection Analysis](#pathological-connection-analysis) *(TBC)*  
+   - [🔄 Correlation Analysis](#correlation-analysis) *(TBC)*  
+6. [📄 Citation](#-citation)  
+7. [🙏 Acknowledgments](#-acknowledgments)  
+ 
 
 ---
 
@@ -43,7 +66,8 @@ With the most comprehensive clinical evaluation to date, our work demonstrates t
   - [Response Estimation](https://mrtrix.readthedocs.io/en/latest/constrained_spherical_deconvolution/response_function_estimation.html)
   - [SS3T CSD](https://mrtrix.readthedocs.io/en/latest/constrained_spherical_deconvolution/constrained_spherical_deconvolution.html)
   - [MSMT CSD](https://mrtrix.readthedocs.io/en/latest/constrained_spherical_deconvolution/multi_shell_multi_tissue_csd.html)
-
+  
+[🔝 Back to Table of Contents](#-table-of-contents)
 ---
 
 ## 📘 Description of Arguments
@@ -76,6 +100,8 @@ With the most comprehensive clinical evaluation to date, our work demonstrates t
 | `--sample_gt_suffix`         | File suffix for ground truth FODs.                             |
 | `--foldroot`                 | Directory containing train/test splits.                        |
 
+[🔝 Back to Table of Contents](#-table-of-contents)
+
 ---
 
 ## Basic Usages
@@ -97,6 +123,8 @@ sh test_msbir.sh
 - `test.sh` should call test_model.py or equivalent with correct model checkpoint and dataset paths.
 - 📝 Ensure the --phase is set to test or similar.
 
+[🔝 Back to Table of Contents](#-table-of-contents)
+
 ---
 ## 🧪 Evaluation Pipeline
 
@@ -115,6 +143,8 @@ To run FOD evaluation:
 cd ./evaluation
 python run_fod_metrics.py
 ```
+[🔝 Back to Table of Contents](#-table-of-contents)
+
 ---
 ### 🧠 Fiber Bundle Element ("Fixel") Evaluation
 
@@ -148,7 +178,6 @@ We define regions with different fiber complexities using the following bundles:
 
 🔍 *See* `./evaluation/generate_fixel_roi.py` for an example of how to generate these ROIs using results from TractSeg.*
 
-
 #### 📊 Fixel Evaluation Metrics
 
 This module performs evaluation on fixel-based metrics after fixel-wise matching between methods. Implemented in `evaluation_fixel.py`, the following metrics are computed:
@@ -164,6 +193,8 @@ Run the full fixel evaluation pipeline:
 cd ./evaluation
 python run_fixel_metrics.py
 ```
+[🔝 Back to Table of Contents](#-table-of-contents)
+
 ---
 
 ### Connectome evaluation
@@ -198,6 +229,7 @@ To run the full pipeline of connectome and graph metric evaluation:
 cd ./evaluation
 python run_connectome_metrics.py
 ```
+[🔝 Back to Table of Contents](#-table-of-contents)
 
 ---
 
@@ -207,14 +239,20 @@ Compare patient-control differences post-enhancement
 2. Register pre-enhancement, post-enhancement results all to the reference (i.e., MSMT CSD) template space
 3. Fixel matching and stats in [`./evaluation/evaluaation_fixel.py`](./evaluation/graph_metrics.py) between methods for comparision
 
+[🔝 Back to Table of Contents](#-table-of-contents)
+
 ---
 
 ### Pathological connection analysis
 TBC
 
+[🔝 Back to Table of Contents](#-table-of-contents)
+
 ---
 ### Correlation analysis
 TBC
+
+[🔝 Back to Table of Contents](#-table-of-contents)
 
 ---
 ## 📝 Citation
@@ -224,7 +262,6 @@ TBC
 @inproceedings{
 }
 ```
-
 ---
 #### 🤝 Acknowledgments
 This repo. template was borrowed from [Chaoyi Zhang's Project](https://github.com/chaoyivision/SGGpoint). 
