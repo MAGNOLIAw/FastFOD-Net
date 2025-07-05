@@ -37,7 +37,7 @@ With the most comprehensive clinical evaluation to date, our work demonstrates t
    
 ## Data Preprocessing
 1. [DWI Denoising](https://mrtrix.readthedocs.io/en/latest/dwi_preprocessing/denoising.html)
-2. [DWI Distortion Correction)(https://mrtrix.readthedocs.io/en/latest/dwi_preprocessing/dwifslpreproc.html)
+2. [DWI Distortion Correction](https://mrtrix.readthedocs.io/en/latest/dwi_preprocessing/dwifslpreproc.html)
 3. FOD Generation
    - [Response Function Estimation](https://mrtrix.readthedocs.io/en/latest/constrained_spherical_deconvolution/response_function_estimation.html)
    - [SS3T CSD](https://mrtrix.readthedocs.io/en/latest/constrained_spherical_deconvolution/constrained_spherical_deconvolution.html)
