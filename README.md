@@ -43,18 +43,54 @@ With the most comprehensive clinical evaluation to date, our work demonstrates t
    - [SS3T CSD](https://mrtrix.readthedocs.io/en/latest/constrained_spherical_deconvolution/constrained_spherical_deconvolution.html)
    - [MSMT CSD](https://mrtrix.readthedocs.io/en/latest/constrained_spherical_deconvolution/multi_shell_multi_tissue_csd.html)
 
-## Basic Usages
-### **Training**
-```
-cd /scripts/
-sh train.sh
-```
+## 📘 Description of Arguments
+| Argument                     | Description                                                    |
+| ---------------------------- | -------------------------------------------------------------- |
+| `--dataroot`                 | Path to low-resolution FOD input data.                         |
+| `--maskroot`                 | Path to brain mask files.                                      |
+| `--gtroot`                   | Path to high-resolution ground truth FODs.                     |
+| `--checkpoints_dir`          | Directory to save model checkpoints.                           |
+| `--name`                     | Experiment name, used to label checkpoint folder.              |
+| `--normalization_mode`       | Normalization strategy (e.g., z-score based).                  |
+| `--model`                    | Model type; `re` refers to resolution enhancement.             |
+| `--input_nc` / `--output_nc` | Number of channels (e.g., 45 SH coefficients).                 |
+| `--init_type`                | Weight initialization method (`kaiming`, etc).                 |
+| `--dataset_mode`             | Dataset loader mode (`fod_re` for FOD resolution enhancement). |
+| `--num_threads`              | Number of data loading threads.                                |
+| `--batch_size`               | Batch size for training.                                       |
+| `--beta1`                    | Beta1 for Adam optimizer.                                      |
+| `--lr`                       | Initial learning rate.                                         |
+| `--n_epochs`                 | Number of training epochs.                                     |
+| `--print_freq`               | Print frequency (in iterations).                               |
+| `--save_latest_freq`         | Frequency (in iterations) to save latest checkpoint.           |
+| `--save_epoch_freq`          | Frequency (in epochs) to save checkpoints.                     |
+| `--gpu_ids`                  | GPU to use (e.g., `0` for first GPU).                          |
+| `--conv_type`                | Network architecture; here using `fastfodnet`.                 |
+| `--test_fold`                | Index of fold used for testing (for cross-validation).         |
+| `--phase`                    | Run phase: `train` or `splitfolds` (for k-fold split).         |
+| `--index_pattern`            | Regex pattern to match subject IDs.                            |
+| `--sample_suffix`            | File suffix for low-res FODs.                                  |
+| `--sample_gt_suffix`         | File suffix for ground truth FODs.                             |
+| `--foldroot`                 | Directory containing train/test splits.                        |
 
-### **Inference**
+## Basic Usages
+### 🏋️‍♂️ Training
+To start training FastFOD-Net using predefined parameters (e.g., for the MSBIR dataset), run:
+```
+cd ./CORE/scripts/
+sh train_msbir.sh
+```
+- This script wraps a python train_model.py command with the appropriate dataset, fold, and model settings.
+- 📝 Be sure to modify `train_msbir.sh` if you're working with a different dataset or configuration.
+
+### 🔍 Inference
+To perform inference on a trained model:
 ```
 cd /scripts/
-sh test.sh
+sh test_msbir.sh
 ```
+- `test.sh` should call test_model.py or equivalent with correct model checkpoint and dataset paths.
+- 📝 Ensure the --phase is set to test or similar.
 
 
 ## Evaluation Pipeline
