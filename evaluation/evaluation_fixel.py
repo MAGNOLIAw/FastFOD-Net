@@ -1,4 +1,7 @@
 import numpy as np
+import pandas as pd
+from copy import deepcopy
+from utils_metrics import load_fixel_data
 
 def index_to_gt(gt, others, angle=45):
     n_gt = len(gt)
@@ -54,3 +57,65 @@ def fixel_comparison(target_indices, target_peak, target_afd, target_dir,
         'peak extra err': np.mean(peakall_sub_errors, axis=0),
         'angular err': np.mean(angular_errors, axis=0),
     }
+
+
+def evaluate_fixel(gt_fixel_path, pred_fixel_paths, roi):
+    gt_index, gt_afd, gt_peak, gt_dir = load_fixel_data(gt_fixel_path)
+    pred_fixels = [load_fixel_data(p) for p in pred_fixel_paths]
+    m_index, m_afd, m_peak, m_dir = zip(*pred_fixels)
+
+    valid_gt = gt_index[roi]
+    valid_m = [m[roi] for m in m_index]
+
+    angular_errors, (afd_e, extra_afd_e, miss_afd_e), (peak_e, extra_peak_e, miss_peak_e) = fixel_comparison(
+        valid_gt, gt_peak, gt_afd, gt_dir,
+        valid_m, m_peak, m_afd, m_dir
+    )
+
+    def combined_mean(errors, extra, miss):
+        return [
+            np.mean([
+                np.sum(e_i) + np.sum(e_e_i) + np.sum(m_i)
+                for e_i, e_e_i, m_i in zip(e, e_e, m)
+            ]) for e, e_e, m in zip(errors, extra, miss)
+        ]
+
+    metrics = {
+        'angular_error': angular_errors,
+        'afd_error': [np.mean(np.concatenate(e)) for e in afd_e],
+        'afd_error_all': combined_mean(afd_e, extra_afd_e, miss_afd_e),
+        'peak_error': [np.mean(np.concatenate(e)) for e in peak_e],
+        'peak_error_all': combined_mean(peak_e, extra_peak_e, miss_peak_e),
+    }
+    return metrics
+
+
+def aggregate_and_save_fixel_metrics(sub_list, method_names, metrics_list, output_path, filename_prefix):
+    metrics_dict = {'sub': sub_list}
+    for key in metrics_list[0].keys():
+        metrics_dict[key] = [m[key] for m in metrics_list]
+    df = pd.DataFrame(metrics_dict)
+    df.to_csv(f"{output_path}/results_{filename_prefix}_fixel_metrics.csv", index=False)
+    return df
+
+
+def print_fixel_metrics(methods, metric_dict):
+    def fmt(name, values, unit=''):
+        string = ' | '.join([f'{v:04.2e}{unit}' for v in values])
+        print(f'{name:<25} | {string}')
+
+    print(f"\n{'Metric (Fixels)':<25} | " + ' | '.join([f"{m:>18}" for m in methods]))
+    print('-' * (27 + len(methods) * 21))
+    fmt("AFD error", metric_dict['afd_error'])
+    fmt("AFD error (all)", metric_dict['afd_error_all'], unit='*')
+    fmt("Peak error", metric_dict['peak_error'])
+    fmt("Peak error (all)", metric_dict['peak_error_all'], unit='*')
+    fmt("Angular error", metric_dict['angular_error'])
+
+
+def summarize_fixel_metrics(metrics_list):
+    return {
+        key: np.mean([m[key] for m in metrics_list], axis=0)
+        for key in metrics_list[0]
+    }
+
