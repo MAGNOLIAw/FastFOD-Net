@@ -236,6 +236,7 @@ python run_connectome_metrics.py
 ---
 
 ### Fixel-based analysis
+TBC
 Compare patient-control differences post-enhancement
 1. [Fixel-based analysis for MSMT CSD](https://mrtrix.readthedocs.io/en/latest/fixel_based_analysis/st_fibre_density_cross-section.html)
 2. Register pre-enhancement, post-enhancement results all to the reference (i.e., MSMT CSD) template space
