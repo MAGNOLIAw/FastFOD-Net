@@ -219,8 +219,7 @@ We evaluate structural connectomes using the following metrics:
 
 We treat the connectome as a graph and compute higher-order network properties inspired by:
 
-- **Brain Connectivity Toolbox (BCT)**  
-  - Website: [https://sites.google.com/site/bctnet/](https://sites.google.com/site/bctnet/)
+- **[Brain Connectivity Toolbox (BCT)](https://sites.google.com/site/bctnet/)**  
 - Python implementation: [`./evaluation/graph_metrics.py`](./evaluation/graph_metrics.py)
 
 #### 📈 Example Usage
@@ -232,6 +231,11 @@ cd ./evaluation
 python run_connectome_metrics.py
 ```
 [🔝 Back to Table of Contents](#-table-of-contents)
+
+---
+
+#### Connectome Visualization
+TBC
 
 ---
 
