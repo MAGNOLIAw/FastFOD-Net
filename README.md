@@ -230,12 +230,11 @@ To run the full pipeline of connectome and graph metric evaluation:
 cd ./evaluation
 python run_connectome_metrics.py
 ```
-[🔝 Back to Table of Contents](#-table-of-contents)
-
----
 
 #### Connectome Visualization
 TBC
+
+[🔝 Back to Table of Contents](#-table-of-contents)
 
 ---
 
